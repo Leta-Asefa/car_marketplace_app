@@ -30,6 +30,8 @@ export const BrowseCars = () => {
   const [showTypeFilters, setShowTypeFilters] = useState(false);
   const [showPriceFilters, setShowPriceFilters] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [sortBy, setSortBy] = useState(null); // 'price-asc', 'price-desc', 'year-asc', 'year-desc'
+  const [showSortOptions, setShowSortOptions] = useState(false);
 
   const carTypes = ['SUV', 'Sedan', 'Electric', 'Hatchback', 'Truck'];
   const priceRanges = [
@@ -37,7 +39,7 @@ export const BrowseCars = () => {
     {label: '$10K-$20K', value: '10000-20000'},
     {label: '$20K-$30K', value: '20000-30000'},
     {label: '$30K-$40K', value: '30000-40000'},
-    {label: 'Over $40K', value: '40000+'},
+    {label: 'Over $40K', value: '40000-1000000000'},
   ];
 
   // Fetch initial cars on first render
@@ -112,6 +114,60 @@ export const BrowseCars = () => {
       </View>
     </TouchableOpacity>
   );
+
+  const applyFilters = async () => {
+    try {
+      setIsLoading(true);
+      
+      // Construct price range if selected
+      let priceRange = null;
+      if (selectedPrice) {
+        const [min, max] = selectedPrice.includes('+') 
+          ? [parseInt(selectedPrice.replace('+', '')), 999999]
+          : selectedPrice.split('-').map(Number);
+        priceRange = { min, max };
+      }
+  
+      const response = await axios.post('http://localhost:4000/api/car/filter', {
+        bodyType: selectedType,
+        priceRange: priceRange
+      });
+      console.log('filtered range  cars:', response.data);
+      
+      setFilteredCars(response.data);
+
+    } catch (error) {
+      console.error('Filter error:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+
+  const sortCars = (type) => {
+    let sortedCars = [...filteredCars];
+    
+    switch(type) {
+      case 'price-asc':
+        sortedCars.sort((a, b) => Number(a.price) - Number(b.price));
+        break;
+      case 'price-desc':
+        sortedCars.sort((a, b) => Number(b.price) - Number(a.price));
+        break;
+      case 'year-asc':
+        sortedCars.sort((a, b) => Number(a.year) - Number(b.year));
+        break;
+      case 'year-desc':
+        sortedCars.sort((a, b) => Number(b.year) - Number(a.year));
+        break;
+      default:
+        // Default sorting (no change)
+        break;
+    }
+    
+    setFilteredCars(sortedCars);
+    setSortBy(type);
+  };
 
   if (isLoading) {
     return (
@@ -231,7 +287,7 @@ export const BrowseCars = () => {
                   }
                   className={`px-3 py-1.5 mr-2 mb-2 rounded-lg ${
                     selectedPrice === range.value
-                      ? 'bg-blue-600'
+                      ? 'bg-violet-600'
                       : 'bg-gray-100'
                   }`}
                   activeOpacity={0.7}>
@@ -247,20 +303,89 @@ export const BrowseCars = () => {
               ))}
             </View>
           )}
+
+{showPriceFilters && (
+  <TouchableOpacity
+    className="bg-violet-600 py-2 px-4 rounded-lg items-center mt-2"
+    onPress={applyFilters}
+    disabled={isLoading}
+  >
+    <Text className="text-white font-medium">
+      {isLoading ? 'Applying...' : 'Apply Filters'}
+    </Text>
+  </TouchableOpacity>
+)}
+
+
         </View>
       )}
 
       {/* Results Count */}
-      <View className="flex-row justify-between items-center mb-2">
-        <Text className="text-sm font-medium text-gray-700">
-          {filteredCars?.length}{' '}
-          {filteredCars?.length === 1 ? 'Result' : 'Results'}
-        </Text>
-        <TouchableOpacity className="flex-row items-center">
-          <Text className="text-sm text-blue-600 mr-1">Sort By</Text>
-          <Icon name="sort" size={16} color="#3b82f6" />
+    {/* Results Count and Sort Dropdown */}
+<View className="flex-row justify-between items-center mb-2">
+  <Text className="text-sm font-medium text-gray-700">
+    {filteredCars?.length} {filteredCars?.length === 1 ? 'Result' : 'Results'}
+  </Text>
+  
+  <View className="relative">
+    <TouchableOpacity 
+      className="flex-row items-center"
+      onPress={() => setShowSortOptions(!showSortOptions)}
+    >
+      <Text className="text-sm text-blue-600 mr-1">Sort By</Text>
+      <Icon name={showSortOptions ? "arrow-drop-up" : "arrow-drop-down"} size={20} color="#3b82f6" />
+    </TouchableOpacity>
+    
+    {showSortOptions && (
+      <View className="absolute right-0 top-6 bg-white shadow-md rounded-lg p-2 z-10 w-40">
+        <TouchableOpacity 
+          className="py-2 px-3"
+          onPress={() => {
+            sortCars('price-asc');
+            setShowSortOptions(false);
+          }}
+        >
+          <Text className={`${sortBy === 'price-asc' ? 'text-violet-600' : 'text-gray-700'}`}>
+            Price: Low to High
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity 
+          className="py-2 px-3"
+          onPress={() => {
+            sortCars('price-desc');
+            setShowSortOptions(false);
+          }}
+        >
+          <Text className={`${sortBy === 'price-desc' ? 'text-violet-600' : 'text-gray-700'}`}>
+            Price: High to Low
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity 
+          className="py-2 px-3"
+          onPress={() => {
+            sortCars('year-asc');
+            setShowSortOptions(false);
+          }}
+        >
+          <Text className={`${sortBy === 'year-asc' ? 'text-violet-600' : 'text-gray-700'}`}>
+            Year: Oldest
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity 
+          className="py-2 px-3"
+          onPress={() => {
+            sortCars('year-desc');
+            setShowSortOptions(false);
+          }}
+        >
+          <Text className={`${sortBy === 'year-desc' ? 'text-violet-600' : 'text-gray-700'}`}>
+            Year: Newest
+          </Text>
         </TouchableOpacity>
       </View>
+    )}
+  </View>
+</View>
 
       {/* Car List in 2-column grid */}
       <FlatList
