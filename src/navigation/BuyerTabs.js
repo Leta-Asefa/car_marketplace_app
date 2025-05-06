@@ -9,9 +9,9 @@ const Tab = createBottomTabNavigator();
 
 export default function BuyerTabs() {
   return (
-    <Tab.Navigator>
-      <Tab.Screen name="Browse" component={BrowseCars} options={{ title: "Browse Cars" }} />
-      <Tab.Screen name="Compare" component={CompareCars} options={{ title: "Compare Cars" }} />
+    <Tab.Navigator screenOptions={{ headerShown: false }}>
+      <Tab.Screen name="Browse" component={BrowseCars}  />
+      <Tab.Screen name="Compare" component={CompareCars} />
       <Tab.Screen name="Messages" component={Messages} />
       <Tab.Screen name="Settings" component={Settings} />
     </Tab.Navigator>

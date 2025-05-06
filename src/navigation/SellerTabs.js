@@ -9,9 +9,9 @@ const Tab = createBottomTabNavigator();
 
 export default function SellerTabs() {
   return (
-    <Tab.Navigator>
-      <Tab.Screen name="PostCar" component={PostCar} options={{ title: "Post Car" }} />
-      <Tab.Screen name="PostList" component={PostList} options={{ title: "My Listings" }} />
+    <Tab.Navigator screenOptions={{ headerShown: false }}>
+      <Tab.Screen name="PostCar" component={PostCar} />
+      <Tab.Screen name="PostList" component={PostList} />
       <Tab.Screen name="Messages" component={Messages} />
       <Tab.Screen name="Settings" component={Settings} />
     </Tab.Navigator>
