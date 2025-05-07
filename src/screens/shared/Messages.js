@@ -180,8 +180,8 @@ export const Messages = () => {
 
   const renderMessageItem = ({ item, index }) => {
     const isMe = item.senderId === user._id;
-    const isImage = item.message.startsWith('[IMAGE]');
-    const imageUrl = isImage ? item.message.replace('[IMAGE]', '') : null;
+    const isImage = item.isImage;
+    const imageUrl = isImage ? item.message : null;
 
     return (
       <View
