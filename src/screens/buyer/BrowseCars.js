@@ -191,9 +191,9 @@ export const BrowseCars = () => {
       </View>
 
       {/* Search Bar */}
-      <View className="relative mb-3">
+      <View className="relative mb-3" >
         <TextInput
-          className="bg-white p-3 rounded-xl shadow-sm border border-gray-200 pl-12"
+          className="bg-white p-2 rounded-xl shadow-sm border border-gray-200 pl-12"
           placeholder="Search by make, model, or feature..."
           placeholderTextColor="#9CA3AF"
           value={query}
@@ -203,7 +203,8 @@ export const BrowseCars = () => {
           name="search"
           size={20}
           color="#9CA3AF"
-          className="absolute left-3 top-3"
+          style={{position:'absolute',left:12,top:9}}
+
         />
         <TouchableOpacity
           className="absolute right-3 top-3"
@@ -211,7 +212,7 @@ export const BrowseCars = () => {
           <Icon
             name={showFilters ? 'filter-list-off' : 'filter-list'}
             size={20}
-            color="#3b82f6"
+            color="#7c3aed"
           />
         </TouchableOpacity>
       </View>
@@ -246,7 +247,7 @@ export const BrowseCars = () => {
                     setSelectedType(type === selectedType ? null : type)
                   }
                   className={`px-3 py-1.5 mr-2 rounded-full ${
-                    selectedType === type ? 'bg-blue-600' : 'bg-gray-100'
+                    selectedType === type ? 'bg-violet-600' : 'bg-gray-100'
                   }`}
                   activeOpacity={0.7}>
                   <Text
@@ -304,7 +305,7 @@ export const BrowseCars = () => {
             </View>
           )}
 
-{showPriceFilters && (
+{(showPriceFilters || showTypeFilters) && (
   <TouchableOpacity
     className="bg-violet-600 py-2 px-4 rounded-lg items-center mt-2"
     onPress={applyFilters}
@@ -332,8 +333,8 @@ export const BrowseCars = () => {
       className="flex-row items-center"
       onPress={() => setShowSortOptions(!showSortOptions)}
     >
-      <Text className="text-sm text-blue-600 mr-1">Sort By</Text>
-      <Icon name={showSortOptions ? "arrow-drop-up" : "arrow-drop-down"} size={20} color="#3b82f6" />
+      <Text className="text-sm text-violet-600 mr-1">Sort By</Text>
+      <Icon name={showSortOptions ? "arrow-drop-up" : "arrow-drop-down"} size={20} color="#7c3aed" />
     </TouchableOpacity>
     
     {showSortOptions && (
@@ -615,9 +616,10 @@ export const BrowseCars = () => {
                         </Text>
                         <Text className="text-sm text-gray-500">
                           {selectedCar.createdAt
-                            ? `Member since ${new Date(
-                                selectedCar.createdAt,
-                              ).getFullYear()}`
+                            ? `Member  since ${  new Date(selectedCar.user.createdAt).toLocaleDateString('en-US', {
+                              month: 'short',
+                              year: 'numeric',
+                            })}`
                             : 'Member date not available'}
                         </Text>
                       </View>
