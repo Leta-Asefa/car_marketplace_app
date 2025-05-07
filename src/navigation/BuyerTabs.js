@@ -5,6 +5,7 @@ import { BrowseCars } from '../screens/buyer/BrowseCars';
 import { CompareCars } from '../screens/buyer/CompareCars';
 import { Messages } from '../screens/shared/Messages';
 import { Settings } from '../screens/shared/Settings';
+import { History } from '../screens/buyer/History';
 
 const Tab = createBottomTabNavigator();
 
@@ -44,6 +45,15 @@ export default function BuyerTabs() {
           ),
         }}
       />
+        <Tab.Screen 
+          name="History" 
+          component={History}
+          options={{
+            tabBarIcon: ({ color, size }) => (
+              <Icon name="history" color={color} size={size} />
+            ),
+          }}
+        />
       <Tab.Screen 
         name="Settings" 
         component={Settings}
