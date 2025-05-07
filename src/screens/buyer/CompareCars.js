@@ -194,7 +194,7 @@ export const CompareCars = () => {
                 {item.title}
                 <Text className="text-gray-500 text-xs font-normal">
                   {' '}
-                  ({item.bodyType} || {item.model})
+                  (owner : {item?.user?.username} || {item.bodyType} || {item.model})
                 </Text>{' '}
               </Text>
             </TouchableOpacity>
@@ -229,7 +229,7 @@ export const CompareCars = () => {
                 {item.title}
                 <Text className="text-gray-500 text-xs font-normal">
                   {' '}
-                  ({item.bodyType} || {item.model})
+                  (owner : {item?.user?.username} || {item.bodyType} || {item.model})
                 </Text>{' '}
               </Text>
             </TouchableOpacity>
