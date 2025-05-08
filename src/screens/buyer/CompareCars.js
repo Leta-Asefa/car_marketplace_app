@@ -9,6 +9,7 @@ import {
 import axios from 'axios';
 import {Image} from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons'; // or use MaterialIcons/Ionicons
+import {useNavigation} from '@react-navigation/native';
 
 export const CompareCars = () => {
   const [query1, setQuery1] = useState('');
@@ -17,6 +18,7 @@ export const CompareCars = () => {
   const [results2, setResults2] = useState([]);
   const [car1, setCar1] = useState(null);
   const [car2, setCar2] = useState(null);
+  const navigation = useNavigation();
 
   const searchCar = async (query, setter) => {
     try {
@@ -28,6 +30,10 @@ export const CompareCars = () => {
     } catch (err) {
       console.error(err);
     }
+  };
+
+  const navigateToMessage = (sellerId) => {
+    navigation.navigate('Messages', { sellerId });
   };
 
   const renderCarCard = car => {
@@ -148,7 +154,9 @@ export const CompareCars = () => {
               </View>
             </View>
 
-            <TouchableOpacity className="bg-violet-600  rounded-xl pt-1 pb-2 flex-row justify-center items-center gap-2">
+            <TouchableOpacity
+              className="bg-violet-600  rounded-xl pt-1 pb-2 flex-row justify-center items-center gap-2"
+              onPress={() => navigateToMessage(car.user._id)}>
               <Icon name="message" size={12} color="#fff" />
               <Text className="text-white text-center font-semibold">
                 Contact Seller

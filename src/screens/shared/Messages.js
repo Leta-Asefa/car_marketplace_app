@@ -20,8 +20,11 @@ import Feather from 'react-native-vector-icons/Feather';
 import ImageViewing from 'react-native-image-viewing';
 import {useAuthUserContext} from '../../contexts/AuthUserContext';
 import {useSocketContext} from '../../contexts/SocketContext';
+import {useRoute} from '@react-navigation/native';
 
 export const Messages = () => {
+  const route = useRoute();
+  const sellerId = route.params?.sellerId;
   const [conversations, setConversations] = useState([]);
   const [selected, setSelected] = useState(null);
   const [messageText, setMessageText] = useState('');
@@ -47,6 +50,53 @@ export const Messages = () => {
     };
     fetchConversations();
   }, []);
+
+  useEffect(() => {
+    console.log("navigated to messages sender",sellerId);
+    if (sellerId && conversations.length > 0) {
+      const conversation = conversations.find(conv =>
+        conv.participants.some(participant => participant._id === sellerId),
+      );
+      if (conversation) {
+        setSelected(conversation);
+      }
+    }
+  }, [sellerId, conversations]);
+
+  useEffect(() => {
+    if (socket) {
+      socket.on('newMessage', (newMessage) => {
+        if (newMessage.receiverId === user._id) {
+          setConversations((prevConversations) => {
+            const updatedConversations = prevConversations.map((conv) => {
+              if (conv.participants.some((p) => p._id === newMessage.senderId)) {
+                return {
+                  ...conv,
+                  messages: [...conv.messages, newMessage],
+                };
+              }
+              return conv;
+            });
+            return updatedConversations;
+          });
+
+          if (
+            selected &&
+            selected.participants.some((p) => p._id === newMessage.senderId)
+          ) {
+            setSelected((prevSelected) => ({
+              ...prevSelected,
+              messages: [...prevSelected.messages, newMessage],
+            }));
+          }
+        }
+      });
+
+      return () => {
+        socket.off('newMessage');
+      };
+    }
+  }, [socket, user._id, selected]);
 
   const handleImageUpload = async () => {
     try {
@@ -161,7 +211,7 @@ export const Messages = () => {
           setSelected(item);
           setShowConversationModal(false);
         }}>
-        <View className="w-12 h-12 rounded-full bg-blue-500 justify-center items-center mr-3">
+        <View className="w-12 h-12 rounded-full bg-violet-600 justify-center items-center mr-3">
           <Text className="text-white font-bold text-lg">
             {otherUser?.username?.charAt(0).toUpperCase() || 'U'}
           </Text>
@@ -268,7 +318,7 @@ export const Messages = () => {
           onPress={() => setShowConversationModal(true)}>
           {selected ? (
             <>
-              <View className="w-8 h-8 rounded-full bg-blue-500 justify-center items-center mr-2">
+              <View className="w-8 h-8 rounded-full bg-violet-500 justify-center items-center mr-2">
                 <Text className="text-white font-bold">
                   {selected.participants
                     .find(p => p._id !== user._id)
@@ -334,7 +384,7 @@ export const Messages = () => {
               <Ionicons
                 name="send"
                 size={22}
-                color={messageText.trim() ? '#007AFF' : '#ccc'}
+                color={messageText.trim() ? '#007AFF' : '#7c3aed'}
               />
             </TouchableOpacity>
           </View>

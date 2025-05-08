@@ -1,34 +1,61 @@
-import React, { useState } from "react";
-import { View, Text, FlatList, Pressable, Modal, ScrollView } from "react-native";
-import Icon from "react-native-vector-icons/Ionicons";
-import { useAuthUserContext } from "../../contexts/AuthUserContext";
+import React, {useState} from 'react';
+import {
+  View,
+  Text,
+  FlatList,
+  Pressable,
+  Modal,
+  ScrollView,
+  TouchableOpacity,
+  Image,
+} from 'react-native';
+import {useAuthUserContext} from '../../contexts/AuthUserContext';
+import axios from 'axios';
+import Icon from 'react-native-vector-icons/MaterialIcons';
+import FontAwesome from 'react-native-vector-icons/FontAwesome';
+import {useNavigation} from '@react-navigation/native';
+import {CarDetailsModal} from '../../components/CarDetailsModal';
 
 export const History = () => {
-  const { authUser } = useAuthUserContext();
+  const {authUser} = useAuthUserContext();
   const [selectedItem, setSelectedItem] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const navigation = useNavigation();
 
-  const openModal = (item) => {
-    setSelectedItem(item);
-    setModalVisible(true);
+  const openModal = async item => {
+    console.log('opening modal');
+    try {
+      const res = await axios.get(
+        `http://localhost:4000/api/car/get/${item.carId}`,
+        {withCredentials: true},
+      );
+      console.log('fetched car ', res.data);
+      if (res.data._id) {
+        setSelectedItem(res.data);
+        setModalVisible(true);
+      } else setSelectedItem(item);
+    } catch (error) {}
   };
 
-  const closeModal = () => {
-    setSelectedItem(null);
-    setModalVisible(false);
-  };
+  
 
-  const renderItem = ({ item }) => (
+ 
+
+  const renderItem = ({item}) => (
     <Pressable
       onPress={() => openModal(item)}
-      className="bg-white p-4 rounded-xl mb-3 shadow-sm flex-row justify-between items-center"
-    >
+      className="bg-white p-4 rounded-xl mb-3 shadow-sm flex-row justify-between items-center">
       <View>
-        <Text className="text-base font-semibold">{item.brand} - {item.model}</Text>
-        <Text className="text-sm text-gray-500">{item.location.split(",")[0]}</Text>
+        <Text className="text-base font-semibold">
+          {item.brand} - {item.model}
+        </Text>
+        <Text className="text-sm text-gray-500">
+          {item.location.split(',')[0]}
+        </Text>
         <Text className="text-xs text-gray-400">Year: {item.year}</Text>
       </View>
-      <Icon name="eye-outline" size={20} color="#6B7280" />
+      <Icon name="remove-red-eye" size={20} color="#6B7280" />
     </Pressable>
   );
 
@@ -38,44 +65,19 @@ export const History = () => {
 
       <FlatList
         data={authUser?.searchHistory || []}
-        keyExtractor={(item) => item._id}
+        keyExtractor={item => item._id}
         renderItem={renderItem}
         showsVerticalScrollIndicator={false}
       />
 
-      <Modal
-        visible={modalVisible}
-        animationType="slide"
-        transparent
-        onRequestClose={closeModal}
-      >
-        <View className="flex-1 bg-black bg-opacity-50 justify-center items-center px-4">
-          <View className="bg-white w-full rounded-xl p-6 max-h-[80%]">
-            <ScrollView>
-              <Text className="text-lg font-bold mb-2">Search Details</Text>
-              {selectedItem && (
-                <>
-                  <Text className="mb-1"><Text className="font-semibold">Brand:</Text> {selectedItem.brand}</Text>
-                  <Text className="mb-1"><Text className="font-semibold">Model:</Text> {selectedItem.model}</Text>
-                  <Text className="mb-1"><Text className="font-semibold">Year:</Text> {selectedItem.year}</Text>
-                  <Text className="mb-1"><Text className="font-semibold">Location:</Text> {selectedItem.location}</Text>
-                  <Text className="mb-1"><Text className="font-semibold">Car ID:</Text> {selectedItem.carId}</Text>
-                  <Text className="mb-1"><Text className="font-semibold">Owner ID:</Text> {selectedItem.ownerId}</Text>
-                  <Text className="mb-1"><Text className="font-semibold">Date:</Text> {new Date(selectedItem.date).toLocaleString()}</Text>
-                </>
-              )}
-            </ScrollView>
-
-            <Pressable
-              onPress={closeModal}
-              className="mt-4 self-end px-4 py-2 bg-blue-600 rounded-full"
-            >
-              <Text className="text-white font-semibold">Close</Text>
-            </Pressable>
-          </View>
-        </View>
-      </Modal>
+      <CarDetailsModal
+        modalVisible={modalVisible}
+        setModalVisible={setModalVisible}
+        selectedCar={selectedItem}
+        navigation={navigation}
+        sellerId={selectedItem?.user._id}
+      />
+      {console.log("selectedItem ",selectedItem)}
     </View>
   );
 };
-
