@@ -63,7 +63,13 @@ export const PostCar = () => {
   const [uploading, setUploading] = useState(false);
   const [previewVisible, setPreviewVisible] = useState(false);
   const [dropdownVisible, setDropdownVisible] = useState({});
-  const [modalVisible, setModalVisible] = useState({});
+  const [modalVisible, setModalVisible] = useState(() => {
+    const initialState = {};
+    Object.keys(dropdownData).forEach((key) => {
+      initialState[key] = false;
+    });
+    return initialState;
+  });
   const [currentField, setCurrentField] = useState(null);
 
   const handleInputChange = (name, value) => {
