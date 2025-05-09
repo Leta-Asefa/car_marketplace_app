@@ -11,7 +11,6 @@ import {
   ActivityIndicator,
   Platform,
   FlatList,
-  ActionSheetIOS,
 } from 'react-native';
 import { launchImageLibrary } from 'react-native-image-picker';
 import axios from 'axios';
@@ -166,28 +165,47 @@ export const PostCar = () => {
   };
 
   return (
-    <ScrollView className="flex-1 bg-gray-100 p-4">
-      <Text className="text-3xl font-bold mb-6 text-violet-700">Post Your Car</Text>
+    <ScrollView className="flex-1 bg-gray-50 p-6">
+      {/* Header Section */}
+      <View className="mb-8">
+        <Text className="text-3xl font-bold text-gray-900 mb-2">List Your Vehicle</Text>
+        <Text className="text-gray-500">Fill in the details to showcase your car to potential buyers</Text>
+        <View className="h-1 bg-indigo-100 w-20 mt-2 rounded-full" />
+      </View>
 
+      {/* Form Fields */}
       {Object.keys(formData).map((key) => (
         key !== 'images' && (
-          <View key={key} className="mb-6">
+          <View key={key} className="mb-5">
             <View className="flex-row items-center mb-2">
-              <Icon name={inputIcons[key]} size={20} color="#7c3aed" className="mr-2" />
-              <Text className="text-lg font-semibold capitalize text-violet-600">{key}</Text>
+              <Icon 
+                name={inputIcons[key]} 
+                size={20} 
+                color="#6366f1" 
+                className="mr-2" 
+              />
+              <Text className="text-base font-medium text-gray-700 capitalize">
+                {key.replace(/([A-Z])/g, ' $1').trim()}
+              </Text>
             </View>
+            
             {dropdownData[key] ? (
               <TouchableOpacity
-                className="border border-gray-300 rounded p-3 bg-white flex-row items-center justify-between"
+                className={`border rounded-lg p-4 bg-white flex-row items-center justify-between 
+                  ${formData[key] ? 'border-indigo-100' : 'border-gray-200'}`}
                 onPress={() => showDropdown(key)}
               >
-                <Text className="text-gray-700">{formData[key] || `Select ${key}`}</Text>
-                <Icon name="chevron-down-outline" size={20} color="#7c3aed" />
+                <Text className={`text-base ${formData[key] ? 'text-gray-800' : 'text-gray-400'}`}>
+                  {formData[key] || `Select ${key}`}
+                </Text>
+                <Icon name="chevron-down-outline" size={18} color="#9ca3af" />
               </TouchableOpacity>
             ) : (
               <TextInput
-                className="border border-gray-300 rounded p-3 bg-white"
-                placeholder={`Enter ${key}`}
+                className={`border rounded-lg p-4 bg-white text-gray-800 text-base
+                  ${formData[key] ? 'border-indigo-100' : 'border-gray-200'}`}
+                placeholder={`Enter ${key.replace(/([A-Z])/g, ' $1').trim()}`}
+                placeholderTextColor="#9ca3af"
                 value={formData[key]}
                 onChangeText={(value) => handleInputChange(key, value)}
                 keyboardType={key === 'price' || key === 'mileage' ? 'numeric' : 'default'}
@@ -198,28 +216,31 @@ export const PostCar = () => {
               <Modal
                 visible={modalVisible[key]}
                 animationType="slide"
+                transparent={true}
                 onRequestClose={() => setModalVisible((prev) => ({ ...prev, [key]: false }))}
               >
-                <View className="flex-1 bg-white p-4">
-                  <Text className="text-xl font-bold mb-4 text-violet-600">Select {key}</Text>
-                  <FlatList
-                    data={dropdownData[key]}
-                    keyExtractor={(item, index) => index.toString()}
-                    renderItem={({ item }) => (
-                      <TouchableOpacity
-                        className="p-4 border-b border-gray-200"
-                        onPress={() => handleDropdownSelect(key, item)}
-                      >
-                        <Text className="text-lg text-gray-800">{item}</Text>
+                <View className="flex-1 justify-end bg-black bg-opacity-50">
+                  <View className="bg-white rounded-t-3xl p-6 max-h-[80%]">
+                    <View className="flex-row justify-between items-center mb-4">
+                      <Text className="text-xl font-bold text-gray-900">Select {key}</Text>
+                      <TouchableOpacity onPress={() => setModalVisible((prev) => ({ ...prev, [key]: false }))}>
+                        <Icon name="close-outline" size={24} color="#9ca3af" />
                       </TouchableOpacity>
-                    )}
-                  />
-                  <TouchableOpacity
-                    className="mt-4 bg-gray-500 rounded p-3"
-                    onPress={() => setModalVisible((prev) => ({ ...prev, [key]: false }))}
-                  >
-                    <Text className="text-white text-center text-lg">Cancel</Text>
-                  </TouchableOpacity>
+                    </View>
+                    <FlatList
+                      data={dropdownData[key]}
+                      keyExtractor={(item, index) => index.toString()}
+                      renderItem={({ item }) => (
+                        <TouchableOpacity
+                          className="py-3 border-b border-gray-100"
+                          onPress={() => handleDropdownSelect(key, item)}
+                        >
+                          <Text className="text-base text-gray-800">{item}</Text>
+                        </TouchableOpacity>
+                      )}
+                      ItemSeparatorComponent={() => <View className="h-px bg-gray-100" />}
+                    />
+                  </View>
                 </View>
               </Modal>
             )}
@@ -227,25 +248,39 @@ export const PostCar = () => {
         )
       ))}
 
-      <Text className="text-lg font-semibold text-violet-600 mb-2">Upload Images</Text>
-      <View className="flex-row flex-wrap gap-3 mb-6">
-        {selectedImages.map((image, index) => (
-          <TouchableOpacity
-            key={index}
-            onPress={() => handleImageSelection(index)}
-            className="w-24 h-24 bg-gray-200 rounded-xl justify-center items-center shadow-md"
-          >
-            {image ? (
-              <Image source={{ uri: image }} className="w-full h-full rounded-xl" />
-            ) : (
-              <Icon name="camera-outline" size={28} color="#888" />
-            )}
-          </TouchableOpacity>
-        ))}
+      {/* Image Upload Section */}
+      <View className="mb-6">
+        <View className="flex-row items-center mb-3">
+          <Icon name="images-outline" size={20} color="#6366f1" className="mr-2" />
+          <Text className="text-base font-medium text-gray-700">Upload Images</Text>
+        </View>
+        <Text className="text-sm text-gray-500 mb-4">Upload up to 6 photos (first image will be featured)</Text>
+        
+        <View className="flex-row flex-wrap justify-between">
+          {selectedImages.map((image, index) => (
+            <TouchableOpacity
+              key={index}
+              onPress={() => handleImageSelection(index)}
+              className={`w-[30%] aspect-square mb-4 bg-gray-100 rounded-xl justify-center items-center 
+                ${image ? 'border-2 border-indigo-200' : 'border border-dashed border-gray-300'}`}
+            >
+              {image ? (
+                <Image source={{ uri: image }} className="w-full h-full rounded-xl" />
+              ) : (
+                <View className="items-center">
+                  <Icon name="camera-outline" size={24} color="#9ca3af" />
+                  <Text className="text-xs text-gray-400 mt-1">Photo {index + 1}</Text>
+                </View>
+              )}
+            </TouchableOpacity>
+          ))}
+        </View>
       </View>
 
+      {/* Preview Button */}
       <TouchableOpacity
-        className="flex-row justify-center items-center bg-violet-600 rounded-xl py-4 shadow-lg"
+        className={`flex-row justify-center items-center rounded-xl py-4 mb-6
+          ${uploading ? 'bg-indigo-300' : 'bg-indigo-600'}`}
         onPress={() => setPreviewVisible(true)}
         disabled={uploading}
       >
@@ -254,57 +289,89 @@ export const PostCar = () => {
         ) : (
           <>
             <Icon name="eye-outline" size={20} color="white" />
-            <Text className="text-white text-lg font-semibold ml-2">Preview & Post</Text>
+            <Text className="text-white text-lg font-semibold ml-2">Preview Listing</Text>
           </>
         )}
       </TouchableOpacity>
 
+      {/* Preview Modal */}
       <Modal visible={previewVisible} animationType="slide" onRequestClose={() => setPreviewVisible(false)}>
-        <ScrollView className="flex-1 bg-white p-4">
-          <Text className="text-3xl font-bold mb-4 text-violet-700">Preview Details</Text>
+        <View className="flex-1 bg-white">
+          <ScrollView className="p-6">
+            <View className="flex-row justify-between items-center mb-6">
+              <Text className="text-2xl font-bold text-gray-900">Listing Preview</Text>
+              <TouchableOpacity onPress={() => setPreviewVisible(false)}>
+                <Icon name="close-outline" size={24} color="#9ca3af" />
+              </TouchableOpacity>
+            </View>
 
-          {Object.entries(formData).map(([key, value]) => (
-            key !== 'images' && (
-              <View key={key} className="mb-4">
-                <Text className="text-sm text-gray-500 font-medium capitalize">{key}</Text>
-                <Text className="text-gray-800 text-lg">{value}</Text>
+            <View className="mb-8">
+              <Text className="text-xl font-bold text-gray-900 mb-2">{formData.title || 'Untitled Listing'}</Text>
+              <Text className="text-indigo-600 font-medium">${formData.price || '0'}</Text>
+            </View>
+
+            {/* Image Gallery */}
+            {selectedImages.filter(img => img).length > 0 && (
+              <View className="mb-8">
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} className="pb-4">
+                  {selectedImages.map((img, i) => (
+                    img && (
+                      <Image
+                        key={i}
+                        source={{ uri: img }}
+                        className="w-64 h-48 rounded-lg mr-3"
+                      />
+                    )
+                  ))}
+                </ScrollView>
               </View>
-            )
-          ))}
+            )}
 
-          <Text className="text-lg font-semibold text-violet-600 mb-2">Selected Images</Text>
-          <ScrollView horizontal>
-            {selectedImages.map((img, i) => (
-              img && (
-                <Image
-                  key={i}
-                  source={{ uri: img }}
-                  className="w-32 h-32 rounded-lg mr-3 shadow-md"
-                />
-              )
-            ))}
+            {/* Details Section */}
+            <View className="mb-8">
+              <Text className="text-lg font-bold text-gray-900 mb-4">Details</Text>
+              <View className="bg-gray-50 rounded-xl p-4">
+                {Object.entries(formData).map(([key, value]) => (
+                  key !== 'images' && key !== 'title' && key !== 'description' && value && (
+                    <View key={key} className="flex-row justify-between py-2 border-b border-gray-100 last:border-0">
+                      <Text className="text-gray-500 capitalize">{key.replace(/([A-Z])/g, ' $1').trim()}</Text>
+                      <Text className="text-gray-900 font-medium">{value}</Text>
+                    </View>
+                  )
+                ))}
+              </View>
+            </View>
+
+            {/* Description */}
+            {formData.description && (
+              <View className="mb-8">
+                <Text className="text-lg font-bold text-gray-900 mb-4">Description</Text>
+                <Text className="text-gray-700">{formData.description}</Text>
+              </View>
+            )}
+
+            {/* Action Buttons */}
+            <View className="flex-row justify-between space-x-4 mt-6">
+              <TouchableOpacity
+                className="flex-1 border border-gray-300 rounded-xl py-3"
+                onPress={() => setPreviewVisible(false)}
+              >
+                <Text className="text-gray-700 text-center font-medium">Edit</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                className="flex-1 bg-indigo-600 rounded-xl py-3"
+                onPress={handlePostCar}
+                disabled={uploading}
+              >
+                {uploading ? (
+                  <ActivityIndicator color="white" />
+                ) : (
+                  <Text className="text-white text-center font-medium">Confirm Post</Text>
+                )}
+              </TouchableOpacity>
+            </View>
           </ScrollView>
-
-          <View className="flex-row justify-between mt-6 space-x-2">
-            <TouchableOpacity
-              className="flex-1 bg-gray-500 rounded-xl py-3 shadow-md"
-              onPress={() => setPreviewVisible(false)}
-            >
-              <Text className="text-white text-center text-lg font-semibold">Cancel</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              className="flex-1 bg-violet-600 rounded-xl py-3 shadow-md"
-              onPress={handlePostCar}
-            >
-              {uploading ? (
-                <ActivityIndicator color="white" />
-              ) : (
-                <Text className="text-white text-center text-lg font-semibold">Confirm Post</Text>
-              )}
-            </TouchableOpacity>
-          </View>
-        </ScrollView>
+        </View>
       </Modal>
     </ScrollView>
   );
