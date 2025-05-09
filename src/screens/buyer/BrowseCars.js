@@ -17,6 +17,7 @@ import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import axios from 'axios';
 import {useNavigation} from '@react-navigation/native';
 import {CarDetailsModal} from '../../components/CarDetailsModal';
+import { useAuthUserContext } from '../../contexts/AuthUserContext';
 
 const {height} = Dimensions.get('window');
 
@@ -34,6 +35,7 @@ export const BrowseCars = () => {
   const [showPriceFilters, setShowPriceFilters] = useState(false);
   const [sortBy, setSortBy] = useState(null); // 'price-asc', 'price-desc', 'year-asc', 'year-desc'
   const [showSortOptions, setShowSortOptions] = useState(false);
+  const {authUser}=useAuthUserContext()
 
   const carTypes = ['SUV', 'Sedan', 'Electric', 'Hatchback', 'Truck'];
   const priceRanges = [
@@ -121,7 +123,7 @@ export const BrowseCars = () => {
   const addToSearchHistory = async item => {
     try {
       const res = await axios.post(
-        `http://localhost:4000/api/auth/${user._id}/search_history`,
+        `http://localhost:4000/api/auth/${authUser._id}/search_history`,
         {
           brand: item.brand,
           model: item.model,

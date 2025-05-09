@@ -35,7 +35,7 @@ export const Messages = () => {
   const {authUser: user} = useAuthUserContext();
   const socket = useSocketContext();
   const flatListRef = useRef(null);
-
+  console.log('socket ', socket);
   // Fetch conversations
   useEffect(() => {
     const fetchConversations = async () => {
@@ -52,43 +52,84 @@ export const Messages = () => {
   }, []);
 
   useEffect(() => {
-    console.log("navigated to messages sender",sellerId);
-    if (sellerId && conversations.length > 0) {
-      const conversation = conversations.find(conv =>
-        conv.participants.some(participant => participant._id === sellerId),
-      );
-      if (conversation) {
-        setSelected(conversation);
+    console.log('navigated to messages sender');
+    const handleConversation = async () => {
+      if (sellerId && conversations.length > 0) {
+        const conversation = conversations.find(conv =>
+          conv.participants.some(participant => participant._id === sellerId),
+        );
+        if (conversation) {
+          setSelected(conversation);
+        } else {
+          try {
+            // Create a new conversation if none exists
+            await axios.get(
+              `http://localhost:4000/api/chat/create_conversations/${user._id}/${sellerId}`,
+            );
+
+            // Fetch updated conversations
+            const res = await axios.get(
+              `http://localhost:4000/api/chat/get_conversations/${user._id}`,
+            );
+            setConversations(res.data);
+
+            // Open the newly created conversation
+            const newConversation = res.data.find(conv =>
+              conv.participants.some(
+                participant => participant._id === sellerId,
+              ),
+            );
+            if (newConversation) {
+              setSelected(newConversation);
+            }
+          } catch (err) {
+            console.error('Error creating or fetching conversation', err);
+          }
+        }
       }
-    }
-  }, [sellerId, conversations]);
+    };
+
+    handleConversation();
+  }, [sellerId]);
 
   useEffect(() => {
     if (socket) {
       socket.on('newMessage', (newMessage) => {
         if (newMessage.receiverId === user._id) {
+          console.log('New message received', newMessage);
+
           setConversations((prevConversations) => {
-            const updatedConversations = prevConversations.map((conv) => {
-              if (conv.participants.some((p) => p._id === newMessage.senderId)) {
-                return {
-                  ...conv,
-                  messages: [...conv.messages, newMessage],
-                };
-              }
-              return conv;
-            });
-            return updatedConversations;
+            const conversationExists = prevConversations.some(
+              (conv) => conv._id === newMessage.conversation._id
+            );
+
+            if (conversationExists) {
+              // Update the messages of the existing conversation
+              return prevConversations.map((conv) => {
+                if (conv._id === newMessage.conversation._id) {
+                  return {
+                    ...conv,
+                    messages: [...conv.messages, newMessage],
+                  };
+                }
+                return conv;
+              });
+            } else {
+              // Add the new conversation
+              return [...prevConversations, newMessage.conversation];
+            }
           });
 
-          if (
-            selected &&
-            selected.participants.some((p) => p._id === newMessage.senderId)
-          ) {
-            setSelected((prevSelected) => ({
-              ...prevSelected,
-              messages: [...prevSelected.messages, newMessage],
-            }));
-          }
+          // Update the selected conversation if it matches the new message's conversation
+          setSelected((prevSelected) => {
+            if (prevSelected && prevSelected._id === newMessage.conversation._id) {
+              return {
+                ...prevSelected,
+                messages: [...prevSelected.messages, newMessage],
+              };
+            }
+            return prevSelected;
+          });
         }
       });
 
@@ -96,7 +137,7 @@ export const Messages = () => {
         socket.off('newMessage');
       };
     }
-  }, [socket, user._id, selected]);
+  }, [socket, user._id]);
 
   const handleImageUpload = async () => {
     try {
@@ -203,7 +244,7 @@ export const Messages = () => {
   const renderConversationItem = ({item}) => {
     const otherUser = item.participants.find(p => p._id !== user._id);
     const lastMessage = item.messages[item.messages.length - 1];
-
+    console.log('conversation other user ', otherUser, otherUser?.username);
     return (
       <TouchableOpacity
         className="flex-row items-center p-4 border-b border-gray-100"
@@ -373,7 +414,7 @@ export const Messages = () => {
               value={messageText}
               onChangeText={setMessageText}
               placeholder="Type a message..."
-              className="flex-1 bg-white p-2 px-4 rounded-full border border-gray-300 max-h-20"
+              className="flex-1 bg-white text-black p-2 px-4 rounded-full border border-gray-300 max-h-20"
               multiline
               placeholderTextColor="#999"
             />

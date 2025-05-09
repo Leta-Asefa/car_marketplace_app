@@ -16,7 +16,7 @@ export const SocketContextProvider = ({ children }) => {
 
         if(!authUser) return // if not authuser is initialized do nothing
 
-        const newSocket = io('http://localhost:4000',{ query: {role:'customers',userId:authUser?.user._id},withCredentials:true});
+        const newSocket = io('http://localhost:4000',{ query: {role:'customers',userId:authUser?._id},withCredentials:true});
         setSocket(newSocket);
 
 

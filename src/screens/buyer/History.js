@@ -12,15 +12,15 @@ import {
 import {useAuthUserContext} from '../../contexts/AuthUserContext';
 import axios from 'axios';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import {useNavigation} from '@react-navigation/native';
 import {CarDetailsModal} from '../../components/CarDetailsModal';
 
 export const History = () => {
-  const {authUser} = useAuthUserContext();
+  const {authUser, setAuthUser} = useAuthUserContext();
   const [selectedItem, setSelectedItem] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [refreshing, setRefreshing] = useState(false);
   const navigation = useNavigation();
 
   const openModal = async item => {
@@ -38,9 +38,26 @@ export const History = () => {
     } catch (error) {}
   };
 
-  
-
- 
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    try {
+      const res = await axios.get(
+        `http://localhost:4000/api/auth/${authUser._id}/search_history`,
+        {withCredentials: true},
+      );
+      console.log('fetched history ', res.data);
+      if (res.data) {
+        setAuthUser(prevAuthUser => ({
+          ...prevAuthUser,
+          searchHistory: res.data,
+        }));
+      }
+    } catch (error) {
+      console.error('Error refreshing search history', error);
+    } finally {
+      setRefreshing(false);
+    }
+  };
 
   const renderItem = ({item}) => (
     <Pressable
@@ -61,13 +78,21 @@ export const History = () => {
 
   return (
     <View className="flex-1 bg-gray-100 p-4">
-      <Text className="text-xl font-bold mb-4">Search History</Text>
+
+      <View className="flex-row justify-between  mb-2 ">
+        <Text className="text-xl font-bold mb-4">Search History</Text>
+        <TouchableOpacity onPress={handleRefresh}>
+          <Icon name="refresh" size={25} color="#6B7280" />
+        </TouchableOpacity>
+      </View>
 
       <FlatList
         data={authUser?.searchHistory || []}
         keyExtractor={item => item._id}
         renderItem={renderItem}
         showsVerticalScrollIndicator={false}
+        onRefresh={handleRefresh}
+        refreshing={refreshing}
       />
 
       <CarDetailsModal
@@ -77,7 +102,7 @@ export const History = () => {
         navigation={navigation}
         sellerId={selectedItem?.user._id}
       />
-      {console.log("selectedItem ",selectedItem)}
+      {console.log('selectedItem ', selectedItem)}
     </View>
   );
 };
