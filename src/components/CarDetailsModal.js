@@ -429,11 +429,11 @@ export function CarDetailsModal({
           {/* Contact Options */}
           <Text className="text-base font-semibold text-gray-900 mb-2">Contact Options</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-3 flex-row">
-            {selectedCar.user?.phoneNumber && (
+            {selectedCar?.user?.phoneNumber && (
               <TouchableOpacity
                 className="items-center justify-center mr-4 bg-violet-50 p-3 rounded-full"
                 onPress={() => {
-                  const phone = selectedCar.user.phoneNumber.replace(/[^\d+]/g, '');
+                  const phone = selectedCar?.user.phoneNumber.replace(/[^\d+]/g, '');
                   Linking.openURL(`tel:${phone}`);
                 }}
               >
@@ -441,7 +441,7 @@ export function CarDetailsModal({
                 <Text className="text-xs text-green-600 mt-1">Phone</Text>
               </TouchableOpacity>
             )}
-            {selectedCar.user?.socialMedia?.map((sm, idx) => (
+            {selectedCar?.user?.socialMedia?.map((sm, idx) => (
               <TouchableOpacity
                 key={idx}
                 className="items-center justify-center mr-4 bg-blue-50 p-3 rounded-full"
