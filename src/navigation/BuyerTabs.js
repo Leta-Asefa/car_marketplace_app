@@ -46,11 +46,11 @@ export default function BuyerTabs() {
         }}
       />
         <Tab.Screen 
-          name="History" 
+          name="Favorite" 
           component={History}
           options={{
             tabBarIcon: ({ color, size }) => (
-              <Icon name="history" color={color} size={size} />
+              <Icon name="favorite" color={color} size={size} />
             ),
           }}
         />

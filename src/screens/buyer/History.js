@@ -118,16 +118,16 @@ export const History = () => {
       {/* Tabs */}
       <View className="flex-row mb-4">
         <TouchableOpacity
-          className={`flex-1 py-3 rounded-l-xl ${selectedTab === 'history' ? 'bg-violet-600' : 'bg-white border border-violet-600'}`}
-          onPress={() => setSelectedTab('history')}
-        >
-          <Text className={`text-center font-semibold ${selectedTab === 'history' ? 'text-white' : 'text-violet-600'}`}>History</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          className={`flex-1 py-3 rounded-r-xl ${selectedTab === 'wishlist' ? 'bg-violet-600' : 'bg-white border border-violet-600'}`}
+          className={`flex-1 py-3 rounded-l-xl ${selectedTab === 'wishlist' ? 'bg-violet-600' : 'bg-white border border-violet-600'}`}
           onPress={() => setSelectedTab('wishlist')}
         >
           <Text className={`text-center font-semibold ${selectedTab === 'wishlist' ? 'text-white' : 'text-violet-600'}`}>Wishlist</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          className={`flex-1 py-3 rounded-r-xl ${selectedTab === 'history' ? 'bg-violet-600' : 'bg-white border border-violet-600'}`}
+          onPress={() => setSelectedTab('history')}
+        >
+          <Text className={`text-center font-semibold ${selectedTab === 'history' ? 'text-white' : 'text-violet-600'}`}>History</Text>
         </TouchableOpacity>
       </View>
 
@@ -200,6 +200,7 @@ export const History = () => {
         modalVisible={modalVisible}
         setModalVisible={setModalVisible}
         selectedCar={selectedItem}
+        setSelectedCar={setSelectedItem}
         navigation={navigation}
         sellerId={selectedItem?.user._id}
       />
