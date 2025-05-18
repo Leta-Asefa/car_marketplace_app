@@ -35,7 +35,7 @@ export const BrowseCars = () => {
   const [showPriceFilters, setShowPriceFilters] = useState(false);
   const [sortBy, setSortBy] = useState(null); // 'price-asc', 'price-desc', 'year-asc', 'year-desc'
   const [showSortOptions, setShowSortOptions] = useState(false);
-  const {authUser}=useAuthUserContext()
+  const {authUser,setAuthUser}=useAuthUserContext()
 
   const carTypes = ['SUV', 'Sedan', 'Electric', 'Hatchback', 'Truck'];
   const priceRanges = [
@@ -84,41 +84,86 @@ export const BrowseCars = () => {
     }
   }, [query]);
 
-  const renderCarItem = ({item}) => (
-    <TouchableOpacity
-      onPress={() => {
-        setSelectedCar(item);
-        setModalVisible(true);
-        addToSearchHistory(item);
-      }}
-      className="w-[48%] bg-white p-0.5 mb-3 rounded-lg shadow-sm border border-gray-100"
-      activeOpacity={0.8}>
-      <Image
-        source={{uri: item.images[0]}}
-        className="w-full h-32 rounded-lg mb-2"
-        resizeMode="center"
-      />
-      <View className="flex-row justify-between items-center mb-1">
-        <Text className="font-bold text-sm text-gray-800" numberOfLines={1}>
-          {item.brand} {item.model}
+  const renderCarItem = ({item}) => {
+    const isInWishlist = authUser?.wishList?.includes(item._id);
+
+    const toggleWishlist = async () => {
+      try {
+        await axios.post(
+          `http://localhost:4000/api/auth/${authUser._id}/wishlist`,
+          { carId: item._id },
+          { withCredentials: true }
+        );
+
+        // Update the authUser state
+        setAuthUser((prevAuthUser) => {
+          const updatedWishList = isInWishlist
+            ? prevAuthUser.wishList.filter((id) => id !== item._id)
+            : [...prevAuthUser.wishList, item._id];
+
+          return { ...prevAuthUser, wishList: updatedWishList };
+        });
+      } catch (error) {
+        console.error('Error toggling wishlist:', error);
+      }
+    };
+
+    return (
+      <TouchableOpacity
+        onPress={() => {
+          setSelectedCar(item);
+          setModalVisible(true);
+          addToSearchHistory(item);
+        }}
+        className="w-[48%] bg-white p-0.5 mb-3 rounded-lg shadow-sm border border-gray-100"
+        activeOpacity={0.8}>
+        <View className="relative">
+          <Image
+            source={{uri: item.images[0]}}
+            className="w-full h-32 rounded-lg mb-2"
+            resizeMode="center"
+          />
+          {/* Top Left Heart Icon */}
+          <TouchableOpacity
+            className="absolute top-2 left-2 z-10 bg-white/80 rounded-full p-1"
+            onPress={toggleWishlist}>
+            <Icon
+              name={isInWishlist ? "favorite" : "favorite-border"}
+              size={20}
+              color="#7c3aed"
+            />
+          </TouchableOpacity>
+          {/* Top Right Vehicle Details */}
+          {item.vehicleDetails && (
+            <View className="absolute top-2 right-2 z-10 bg-violet-600 px-2 py-1 rounded-full">
+              <Text className="text-xs text-white font-semibold capitalize">
+                {item.vehicleDetails}
+              </Text>
+            </View>
+          )}
+        </View>
+        <View className="flex-row justify-between items-center mb-1">
+          <Text className="font-bold text-sm text-gray-800" numberOfLines={1}>
+            {item.brand} {item.model}
+          </Text>
+        </View>
+        <Text className="text-green-600 font-semibold text-sm mb-1">
+          ${item.price}
         </Text>
-      </View>
-      <Text className="text-green-600 font-semibold text-sm mb-1">
-        ${item.price}
-      </Text>
-      <View className="flex-row items-center">
-        <Text className="text-xs text-gray-500 mr-1">{item.year}</Text>
-        <Text className="text-xs text-gray-500"> • </Text>
-        <Text className="text-xs text-gray-500">{item.mileage} mi</Text>
-      </View>
-      <View className="flex-row items-center mt-1">
-        <Icon name="location-on" size={12} color="#6B7280" />
-        <Text className="text-xs text-gray-500 ml-1" numberOfLines={1}>
-          {item.location}
-        </Text>
-      </View>
-    </TouchableOpacity>
-  );
+        <View className="flex-row items-center">
+          <Text className="text-xs text-gray-500 mr-1">{item.year}</Text>
+          <Text className="text-xs text-gray-500"> • </Text>
+          <Text className="text-xs text-gray-500">{item.mileage} mi</Text>
+        </View>
+        <View className="flex-row items-center mt-1">
+          <Icon name="location-on" size={12} color="#6B7280" />
+          <Text className="text-xs text-gray-500 ml-1" numberOfLines={1}>
+            {item.location}
+          </Text>
+        </View>
+      </TouchableOpacity>
+    );
+  };
 
   const addToSearchHistory = async item => {
     try {
@@ -447,6 +492,7 @@ export const BrowseCars = () => {
         modalVisible={modalVisible}
         setModalVisible={setModalVisible}
         selectedCar={selectedCar}
+        setSelectedCar={setSelectedCar}
         navigation={navigation}
         sellerId={selectedCar?.user?._id}
       />

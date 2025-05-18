@@ -37,8 +37,29 @@ const dropdownData = {
     'CNG', 'Diesel', 'Electric', 'Hybrid', 'LPG', 'Petrol'
   ],
   transmission: [
-    'Automatic', 'CVT', 'Dual-Clutch', 'Manual', 'Semi-Automatic'
-  ]
+    'Automatic', 'CVT', 'Dual-Clutch', 'Manual', 'Semi-Automatic',
+  ],
+  vehicleDetails: ['New', 'Used', 'Certified Pre-Owned'],
+  features: [
+    'Air Conditioning',
+    'Bluetooth',
+    'Navigation',
+    'Leather Seats',
+    'Sunroof',
+    'Backup Camera',
+    'Heated Seats',
+    'Apple CarPlay',
+    'Android Auto',
+    'Lane Departure Warning',
+  ],
+  safety: [
+    'ABS',
+    'Airbags',
+    'Stability Control',
+    'Blind Spot Monitor',
+    'Forward Collision Warning',
+    'Parking Sensors',
+  ],
 };
 
 export const PostCar = () => {
@@ -57,7 +78,19 @@ export const PostCar = () => {
     color: '',
     price: '',
     images: [],
+    vehicleDetails: '',
+    features: [],
+    safety: [],
   });
+
+  const handleMultiSelect = (field, value) => {
+    setFormData((prev) => {
+      const updatedArray = prev[field].includes(value)
+        ? prev[field].filter((item) => item !== value)
+        : [...prev[field], value];
+      return { ...prev, [field]: updatedArray };
+    });
+  };
 
   const [selectedImages, setSelectedImages] = useState([null, null, null, null, null, null]);
   const [uploading, setUploading] = useState(false);
@@ -134,6 +167,9 @@ export const PostCar = () => {
         color: '',
         price: '',
         images: [],
+        vehicleDetails: '',
+        features: [],
+        safety: [],
       });
       setSelectedImages([null, null, null, null, null, null]);
       setPreviewVisible(false);
@@ -170,6 +206,68 @@ export const PostCar = () => {
     price: 'pricetag-outline',
   };
 
+  const renderDropdown = (key) => (
+    <TouchableOpacity
+      className={`border rounded-lg p-4 bg-white flex-row items-center justify-between 
+        ${formData[key] ? 'border-indigo-100' : 'border-gray-200'}`}
+      onPress={() => showDropdown(key)}
+    >
+      <Text className={`text-base ${formData[key] ? 'text-gray-800' : 'text-gray-400'}`}>
+        {Array.isArray(formData[key])
+          ? formData[key].length > 0
+            ? formData[key].join(', ')
+            : `Select ${key}`
+          : formData[key] || `Select ${key}`}
+      </Text>
+      <Icon name="chevron-down-outline" size={18} color="#9ca3af" />
+    </TouchableOpacity>
+  );
+
+  const renderModal = (key) => (
+    <Modal
+      visible={modalVisible[key]}
+      animationType="slide"
+      transparent={true}
+      onRequestClose={() => setModalVisible((prev) => ({ ...prev, [key]: false }))}
+    >
+      <View className="flex-1 justify-end bg-black bg-opacity-50">
+        <View className="bg-white rounded-t-3xl p-6 max-h-[80%]">
+          <View className="flex-row justify-between items-center mb-4">
+            <Text className="text-xl font-bold text-gray-900">Select {key}</Text>
+            <TouchableOpacity onPress={() => setModalVisible((prev) => ({ ...prev, [key]: false }))}>
+              <Icon name="close-outline" size={24} color="#9ca3af" />
+            </TouchableOpacity>
+          </View>
+          <FlatList
+            data={dropdownData[key]}
+            keyExtractor={(item, index) => index.toString()}
+            renderItem={({ item }) => (
+              <TouchableOpacity
+                className="py-3 border-b border-gray-100"
+                onPress={() =>
+                  Array.isArray(formData[key])
+                    ? handleMultiSelect(key, item)
+                    : handleDropdownSelect(key, item)
+                }
+              >
+                <Text
+                  className={`text-base ${
+                    Array.isArray(formData[key]) && formData[key].includes(item)
+                      ? 'text-indigo-600 font-bold'
+                      : 'text-gray-800'
+                  }`}
+                >
+                  {item}
+                </Text>
+              </TouchableOpacity>
+            )}
+            ItemSeparatorComponent={() => <View className="h-px bg-gray-100" />}
+          />
+        </View>
+      </View>
+    </Modal>
+  );
+
   return (
     <ScrollView className="flex-1 bg-gray-50 p-6">
       {/* Header Section */}
@@ -194,19 +292,7 @@ export const PostCar = () => {
                 {key.replace(/([A-Z])/g, ' $1').trim()}
               </Text>
             </View>
-            
-            {dropdownData[key] ? (
-              <TouchableOpacity
-                className={`border rounded-lg p-4 bg-white flex-row items-center justify-between 
-                  ${formData[key] ? 'border-indigo-100' : 'border-gray-200'}`}
-                onPress={() => showDropdown(key)}
-              >
-                <Text className={`text-base ${formData[key] ? 'text-gray-800' : 'text-gray-400'}`}>
-                  {formData[key] || `Select ${key}`}
-                </Text>
-                <Icon name="chevron-down-outline" size={18} color="#9ca3af" />
-              </TouchableOpacity>
-            ) : (
+            {dropdownData[key] ? renderDropdown(key) : (
               <TextInput
                 className={`border rounded-lg p-4 bg-white text-gray-800 text-base
                   ${formData[key] ? 'border-indigo-100' : 'border-gray-200'}`}
@@ -217,39 +303,7 @@ export const PostCar = () => {
                 keyboardType={key === 'price' || key === 'mileage' ? 'numeric' : 'default'}
               />
             )}
-
-            {dropdownData[key] && (
-              <Modal
-                visible={modalVisible[key]}
-                animationType="slide"
-                transparent={true}
-                onRequestClose={() => setModalVisible((prev) => ({ ...prev, [key]: false }))}
-              >
-                <View className="flex-1 justify-end bg-black bg-opacity-50">
-                  <View className="bg-white rounded-t-3xl p-6 max-h-[80%]">
-                    <View className="flex-row justify-between items-center mb-4">
-                      <Text className="text-xl font-bold text-gray-900">Select {key}</Text>
-                      <TouchableOpacity onPress={() => setModalVisible((prev) => ({ ...prev, [key]: false }))}>
-                        <Icon name="close-outline" size={24} color="#9ca3af" />
-                      </TouchableOpacity>
-                    </View>
-                    <FlatList
-                      data={dropdownData[key]}
-                      keyExtractor={(item, index) => index.toString()}
-                      renderItem={({ item }) => (
-                        <TouchableOpacity
-                          className="py-3 border-b border-gray-100"
-                          onPress={() => handleDropdownSelect(key, item)}
-                        >
-                          <Text className="text-base text-gray-800">{item}</Text>
-                        </TouchableOpacity>
-                      )}
-                      ItemSeparatorComponent={() => <View className="h-px bg-gray-100" />}
-                    />
-                  </View>
-                </View>
-              </Modal>
-            )}
+            {dropdownData[key] && renderModal(key)}
           </View>
         )
       ))}

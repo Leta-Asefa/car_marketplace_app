@@ -16,6 +16,51 @@ import { useAuthUserContext } from '../../contexts/AuthUserContext';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { launchImageLibrary } from 'react-native-image-picker';
 
+const dropdownData = {
+  brand: [
+    'Audi', 'BMW', 'Chevrolet', 'Ford', 'Honda', 'Hyundai', 'Jaguar', 'Jeep',
+    'Kia', 'Land Rover', 'Lexus', 'Mazda', 'Mercedes', 'Nissan', 'Porsche',
+    'Subaru', 'Tesla', 'Toyota', 'Volkswagen', 'Volvo'
+  ],
+  model: [
+    'A4', 'A6', 'Accord', 'Altima', 'Camry', 'C-Class', 'Civic', 'Corolla',
+    'Cruze', 'CX-5', 'E-Class', 'Elantra', 'F-150', 'Golf', 'Malibu', 'Mustang',
+    'Passat', 'Sentra', 'Sportage', 'Tucson', 'X3', 'X5'
+  ],
+  year: Array.from({ length: 30 }, (_, i) => `${2025 - i}`),
+  bodyType: [
+    'Convertible', 'Coupe', 'Crossover', 'Hatchback', 'Pickup', 'Sedan',
+    'SUV', 'Truck', 'Van', 'Wagon'
+  ],
+  fuel: [
+    'CNG', 'Diesel', 'Electric', 'Hybrid', 'LPG', 'Petrol'
+  ],
+  transmission: [
+    'Automatic', 'CVT', 'Dual-Clutch', 'Manual', 'Semi-Automatic',
+  ],
+  vehicleDetails: ['New', 'Used', 'Certified Pre-Owned'],
+  features: [
+    'Air Conditioning',
+    'Bluetooth',
+    'Navigation',
+    'Leather Seats',
+    'Sunroof',
+    'Backup Camera',
+    'Heated Seats',
+    'Apple CarPlay',
+    'Android Auto',
+    'Lane Departure Warning',
+  ],
+  safety: [
+    'ABS',
+    'Airbags',
+    'Stability Control',
+    'Blind Spot Monitor',
+    'Forward Collision Warning',
+    'Parking Sensors',
+  ],
+};
+
 export function PostList() {
   const { authUser } = useAuthUserContext();
   const [cars, setCars] = useState([]);
@@ -23,6 +68,8 @@ export function PostList() {
   const [modalVisible, setModalVisible] = useState(false);
   const [loading, setLoading] = useState(false);
   const [selectedImages, setSelectedImages] = useState([null, null, null, null, null, null]);
+  const [formData, setFormData] = useState({});
+  const [modalDropdownVisible, setModalDropdownVisible] = useState({});
 
   useEffect(() => {
     const fetchCars = async () => {
@@ -36,6 +83,38 @@ export function PostList() {
 
     fetchCars();
   }, [authUser._id]);
+
+  useEffect(() => {
+    setFormData((prev) => ({
+      ...prev,
+      vehicleDetails: prev.vehicleDetails || '',
+      features: prev.features || [],
+      safety: prev.safety || [],
+      brand: prev.brand || '',
+      model: prev.model || '',
+      year: prev.year || '',
+      bodyType: prev.bodyType || '',
+      fuel: prev.fuel || '',
+      transmission: prev.transmission || '',
+    }));
+  }, []);
+
+  useEffect(() => {
+    if (selectedCar) {
+      setFormData((prev) => ({
+        ...prev,
+        vehicleDetails: selectedCar.vehicleDetails || '',
+        features: selectedCar.features || [],
+        safety: selectedCar.safety || [],
+        brand: selectedCar.brand || '',
+        model: selectedCar.model || '',
+        year: selectedCar.year || '',
+        bodyType: selectedCar.bodyType || '',
+        fuel: selectedCar.fuel || '',
+        transmission: selectedCar.transmission || '',
+      }));
+    }
+  }, [selectedCar]);
 
   const handleImageSelection = async (index) => {
     const options = {
@@ -99,6 +178,9 @@ export function PostList() {
       const updatedCar = {
         ...selectedCar,
         images: uploadedImageUrls,
+        vehicleDetails: formData.vehicleDetails,
+        features: [...new Set(formData.features)], // Ensure unique values
+        safety: [...new Set(formData.safety)], // Ensure unique values
       };
 
       await axios.put(`http://localhost:4000/api/car/${selectedCar._id}`, updatedCar);
@@ -114,6 +196,77 @@ export function PostList() {
       setLoading(false);
     }
   };
+
+  const handleMultiSelect = (field, value) => {
+    setFormData((prev) => {
+      const updatedArray = prev[field].includes(value)
+        ? prev[field].filter((item) => item !== value)
+        : [...prev[field], value];
+      return { ...prev, [field]: updatedArray };
+    });
+  };
+
+  const renderDropdown = (key) => (
+    <TouchableOpacity
+      className={`border rounded-lg p-4 bg-white flex-row items-center justify-between 
+        ${formData[key] ? 'border-indigo-100' : 'border-gray-200'}`}
+      onPress={() => setModalDropdownVisible((prev) => ({ ...prev, [key]: true }))}
+    >
+      <Text className={`text-base ${formData[key] ? 'text-gray-800' : 'text-gray-400'}`}>
+        {Array.isArray(formData[key])
+          ? formData[key].length > 0
+            ? formData[key].join(', ')
+            : `Select ${key}`
+          : formData[key] || `Select ${key}`}
+      </Text>
+      <Icon name="chevron-down-outline" size={18} color="#9ca3af" />
+    </TouchableOpacity>
+  );
+
+  const renderModal = (key) => (
+    <Modal
+      visible={modalDropdownVisible[key]}
+      animationType="slide"
+      transparent={true}
+      onRequestClose={() => setModalDropdownVisible((prev) => ({ ...prev, [key]: false }))}
+    >
+      <View className="flex-1 justify-end bg-black bg-opacity-50">
+        <View className="bg-white rounded-t-3xl p-6 max-h-[80%]">
+          <View className="flex-row justify-between items-center mb-4">
+            <Text className="text-xl font-bold text-gray-900">Select {key}</Text>
+            <TouchableOpacity onPress={() => setModalDropdownVisible((prev) => ({ ...prev, [key]: false }))}>
+              <Icon name="close-outline" size={24} color="#9ca3af" />
+            </TouchableOpacity>
+          </View>
+          <FlatList
+            data={dropdownData[key]}
+            keyExtractor={(item, index) => index.toString()}
+            renderItem={({ item }) => (
+              <TouchableOpacity
+                className="py-3 border-b border-gray-100"
+                onPress={() =>
+                  Array.isArray(formData[key])
+                    ? handleMultiSelect(key, item)
+                    : setFormData((prev) => ({ ...prev, [key]: item }))
+                }
+              >
+                <Text
+                  className={`text-base ${
+                    Array.isArray(formData[key]) && formData[key].includes(item)
+                      ? 'text-indigo-600 font-bold'
+                      : 'text-gray-800'
+                  }`}
+                >
+                  {item}
+                </Text>
+              </TouchableOpacity>
+            )}
+            ItemSeparatorComponent={() => <View className="h-px bg-gray-100" />}
+          />
+        </View>
+      </View>
+    </Modal>
+  );
 
   const renderCarItem = ({ item }) => (
     <TouchableOpacity
@@ -237,6 +390,9 @@ export function PostList() {
                           key === 'transmission' ? 'swap-horizontal-outline' :
                           key === 'color' ? 'color-palette-outline' :
                           key === 'price' ? 'pricetag-outline' :
+                          key === 'vehicleDetails' ? 'information-circle-outline' :
+                          key === 'features' ? 'list-outline' :
+                          key === 'safety' ? 'shield-checkmark-outline' :
                           'help-circle-outline'
                         } 
                         size={18} 
@@ -270,6 +426,25 @@ export function PostList() {
                           ))}
                         </View>
                         <Text className="text-xs text-gray-400 mt-1">Tap to change images (max 6)</Text>
+                      </View>
+                    ) : key === 'vehicleDetails' || key === 'features' || key === 'safety' ? (
+                      <View className="mb-6">
+                        {dropdownData[key].map((option) => (
+                          <TouchableOpacity
+                            key={option}
+                            onPress={() => handleMultiSelect(key, option)}
+                            className={`flex-row items-center mb-2 p-2 rounded-lg 
+                              ${formData[key].includes(option) ? 'bg-indigo-100' : 'bg-gray-100'}`}
+                          >
+                            <Icon
+                              name={formData[key].includes(option) ? 'checkbox-outline' : 'square-outline'}
+                              size={20}
+                              color={formData[key].includes(option) ? '#6366f1' : '#9ca3af'}
+                              className="mr-2"
+                            />
+                            <Text className="text-base text-gray-700">{option}</Text>
+                          </TouchableOpacity>
+                        ))}
                       </View>
                     ) : (
                       <TextInput

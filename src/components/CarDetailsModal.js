@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     Image,
     Modal,
@@ -8,20 +7,53 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import axios from 'axios';
 
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 
 
-export function CarDetailsModal({modalVisible,setModalVisible,selectedCar,navigation,sellerId}){
+export function CarDetailsModal({modalVisible,setModalVisible,selectedCar,setSelectedCar,navigation,sellerId}){
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [otherPosts, setOtherPosts] = useState([]);
+  const [recommendations, setRecommendations] = useState([]);
+
+  useEffect(() => {
+    const fetchOtherPosts = async () => {
+      try {
+        const response = await axios.get(`http://localhost:4000/api/car/get_other_posts/${sellerId}`);
+        setOtherPosts(response.data);
+      } catch (error) {
+        console.error('Error fetching other posts:', error);
+      }
+    };
+
+    const fetchRecommendations = async () => {
+      try {
+        const response = await axios.get(`http://localhost:4000/api/car/recommendations/${selectedCar?.user?._id}`);
+        setRecommendations(response.data);
+      } catch (error) {
+        console.error('Error fetching recommendations:', error);
+      }
+    };
+
+    if (sellerId) {
+      fetchOtherPosts();
+    }
+
+    if (selectedCar?.user?._id) fetchRecommendations();
+  }, [sellerId, selectedCar]);
 
   return (
     <Modal
     animationType="slide"
     transparent={false}
     visible={modalVisible}
-    onRequestClose={() => setModalVisible(false)}>
+    onRequestClose={() =>{
+setCurrentIndex(0)
+      setModalVisible(false)
+    } 
+    }>
     <View className="flex-1 bg-white">
       {/* Header with close button */}
       <View className="flex-row justify-between items-center p-4 border-b border-gray-200">
@@ -194,7 +226,41 @@ export function CarDetailsModal({modalVisible,setModalVisible,selectedCar,naviga
                     </Text>
                   </View>
                 )}
+              {selectedCar.vehicleDetails && (
+                <View className="flex-row items-center bg-violet-100 px-3 py-1 rounded-full mr-2 mb-2">
+                  <Icon name="directions-car" size={16} color="#7c3aed" />
+                  <Text className="text-sm text-violet-700 ml-1 capitalize">{selectedCar.vehicleDetails}</Text>
+                </View>
+              )}
               </View>
+
+              {/* Features, Safety, and Vehicle Details */}
+              {(selectedCar.features?.length > 0 || selectedCar.safety?.length > 0 || selectedCar.vehicleDetails) && (
+                <View className="mb-6">
+                  {selectedCar.features?.length > 0 && (
+                    <View className="mb-2">
+                      <Text className="text-lg font-semibold text-blue-700 mb-1">Features</Text>
+                      {selectedCar.features.map((feature, idx) => (
+                        <View key={idx} className="flex-row items-center mb-1">
+                          <Icon name="check" size={15} color="#2563eb" />
+                          <Text className="text-sm text-blue-700 ml-2">{feature}</Text>
+                        </View>
+                      ))}
+                    </View>
+                  )}
+                  {selectedCar.safety?.length > 0 && (
+                    <View>
+                      <Text className="text-lg font-semibold text-green-700 mb-1">Safety</Text>
+                      {selectedCar.safety.map((safety, idx) => (
+                        <View key={idx} className="flex-row items-center mb-1">
+                          <Icon name="security" size={15} color="#059669" />
+                          <Text className="text-sm text-green-700 ml-2">{safety}</Text>
+                        </View>
+                      ))}
+                    </View>
+                  )}
+                </View>
+              )}
 
               {/* Description */}
               <View className="mb-6">
@@ -237,6 +303,86 @@ export function CarDetailsModal({modalVisible,setModalVisible,selectedCar,naviga
                   </View>
                 </View>
               </View>
+
+              {/* Other Posts Section */}
+              {otherPosts.length > 0 && (
+                <View className="mb-6">
+                  <Text className="text-lg font-semibold text-gray-900 mb-2">
+                    Seller's Other Posts
+                  </Text>
+                  <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                    {otherPosts.map((car) => (
+                      <TouchableOpacity
+                        key={car._id}
+                        className="mr-4"
+                        onPress={() => {
+                          setModalVisible(false);
+                          setTimeout(() => {
+                            setModalVisible(true);
+                            setSelectedCar(car);
+                          }, 300);
+                        }}
+                      >
+                        <View className="w-40 bg-gray-100 rounded-lg overflow-hidden shadow-md">
+                          <Image
+                            source={{ uri: car.images[0] || 'https://via.placeholder.com/150' }}
+                            className="w-full h-24"
+                            resizeMode="cover"
+                          />
+                          <View className="p-2">
+                            <Text className="text-sm font-bold text-gray-800">
+                              {car.title || 'Untitled'}
+                            </Text>
+                            <Text className="text-xs text-gray-500">
+                              {car.year || 'Year N/A'}
+                            </Text>
+                          </View>
+                        </View>
+                      </TouchableOpacity>
+                    ))}
+                  </ScrollView>
+                </View>
+              )}
+
+              {/* Recommendations Section */}
+              {recommendations.length > 0 && (
+                <View className="mb-6">
+                  <Text className="text-lg font-semibold text-gray-900 mb-2">
+                    Recommended For You
+                  </Text>
+                  <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                    {recommendations.map((car) => (
+                      <TouchableOpacity
+                        key={car._id}
+                        className="mr-4"
+                        onPress={() => {
+                          setModalVisible(false);
+                          setTimeout(() => {
+                            setModalVisible(true);
+                            setSelectedCar(car);
+                          }, 300);
+                        }}
+                      >
+                        <View className="w-40 bg-gray-100 rounded-lg overflow-hidden shadow-md">
+                          <Image
+                            source={{ uri: car.images[0] || 'https://via.placeholder.com/150' }}
+                            className="w-full h-24"
+                            resizeMode="cover"
+                          />
+                          <View className="p-2">
+                            <Text className="text-sm font-bold text-gray-800">
+                              {car.title || 'Untitled'}
+                            </Text>
+                            <Text className="text-xs text-gray-500">
+                              {car.year || 'Year N/A'}
+                            </Text>
+                          </View>
+                        </View>
+                      </TouchableOpacity>
+                    ))}
+                  </ScrollView>
+                </View>
+              )}
             </View>
           </>
         )}
