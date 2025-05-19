@@ -373,7 +373,7 @@ export function PostList() {
             <ScrollView className="flex-1 p-6">
               {/* Form Fields */}
               {Object.keys(selectedCar).map((key) => (
-                key !== '_id' && key !== 'createdAt' && key !== 'updatedAt' && key !== '__v' && key !== 'user' && key !== 'status' && (
+                key !== '_id' && key !== 'createdAt' && key !== 'updatedAt'&& key !== 'wishList' && key !== '__v' && key !== 'user' && key !== 'status' && (
                   <View key={key} className="mb-5">
                     <View className="flex-row items-center mb-2">
                       <Icon 

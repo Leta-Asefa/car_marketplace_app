@@ -29,12 +29,26 @@ export function Register() {
       Alert.alert('Error', 'Please fill in all fields');
       return;
     }
-
+  
+    // Phone number validation
+    const phoneRegex = /^(09|07)\d{8}$/;
+    if (!phoneRegex.test(phoneNumber)) {
+      Alert.alert('Invalid Phone Number', 'Phone number must start with 09 or 07 and be 10 digits long');
+      return;
+    }
+  
+    // Password length validation
+    if (password.length < 8) {
+      Alert.alert('Weak Password', 'Password must be at least 8 characters long');
+      return;
+    }
+  
+    // Confirm password match
     if (password !== confirmPassword) {
       Alert.alert('Error', 'Passwords do not match');
       return;
     }
-
+  
     try {
       const res = await axios.post('http://localhost:4000/api/auth/register', {
         email,
@@ -57,7 +71,7 @@ export function Register() {
       );
     }
   };
-
+  
   return (
     <View className="flex-1 justify-center px-5 pb-8 bg-white">
       <View className="flex-col justify-center items-center w-full">

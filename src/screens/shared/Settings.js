@@ -11,6 +11,7 @@ import {
 import {useAuthUserContext} from '../../contexts/AuthUserContext';
 import axios from 'axios';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { useNavigation } from '@react-navigation/native';
 
 const SOCIAL_OPTIONS = [
   { name: 'Telegram', icon: 'send' },
@@ -38,6 +39,7 @@ export function Settings() {
   const [showOldPassword, setShowOldPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const navigation = useNavigation();
 
   const handleSave = async () => {
     if (!username || !phoneNumber) {
@@ -117,6 +119,14 @@ export function Settings() {
     const updated = socialMedia.filter((_, i) => i !== idx);
     await updateSocialMedia(updated);
   };
+
+
+  const handleLogout = () => {
+    setAuthUser(null);
+    navigation.navigate('Login'); // or navigation.navigate('Login') depending on your stack
+  };
+  
+
 
   return (
     <ScrollView>
@@ -305,6 +315,14 @@ export function Settings() {
             </Modal>
           </>
         )}
+
+<TouchableOpacity
+  className="mt-6 bg-red-600 py-3 rounded-xl items-center"
+  onPress={handleLogout}
+>
+  <Text className="text-white font-semibold text-lg">Logout</Text>
+</TouchableOpacity>
+
       </View>
     </ScrollView>
   );
