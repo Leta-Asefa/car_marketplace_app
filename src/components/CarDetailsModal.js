@@ -12,6 +12,7 @@ import axios from 'axios';
 
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
+import { useAuthUserContext } from '../contexts/AuthUserContext';
 
 export function CarDetailsModal({
   modalVisible,
@@ -24,6 +25,7 @@ export function CarDetailsModal({
   const [currentIndex, setCurrentIndex] = useState(0);
   const [otherPosts, setOtherPosts] = useState([]);
   const [recommendations, setRecommendations] = useState([]);
+  const { authUser } = useAuthUserContext();
 
   useEffect(() => {
     const fetchOtherPosts = async () => {
@@ -154,6 +156,9 @@ export function CarDetailsModal({
                 <View className="flex-row justify-between items-start mb-3">
                   <View className="flex-1">
                     <Text className="text-2xl font-bold text-gray-900">
+                      {selectedCar.title ? `${selectedCar.title} ` : 'Unknown Ttile '}
+                    </Text>
+                    <Text className="text-xl font-bold text-gray-900">
                       {selectedCar.brand
                         ? `${selectedCar.brand} `
                         : 'Unknown Brand '}
@@ -488,8 +493,9 @@ export function CarDetailsModal({
           </ScrollView>
           <TouchableOpacity
             className="bg-violet-600 py-2 rounded-lg items-center flex-row justify-center"
-            onPress={() => {
-              navigation.navigate('Messages', { sellerId: selectedCar?.user?._id })
+            onPress={async () => {
+              console.log("Seller Id ",sellerId)
+             navigation.navigate('Messages', { sellerId });
             }}
             activeOpacity={0.8}>
             <Icon name="chat" size={15} color="white" />

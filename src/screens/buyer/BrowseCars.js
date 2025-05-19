@@ -237,17 +237,20 @@ export const BrowseCars = () => {
           />
           {/* Top Left Heart Icon */}
           <TouchableOpacity
-            className="absolute top-2 left-2 z-10 bg-white/80 rounded-full p-1"
+            className="absolute top-2 left-2 z-10 bg-white/80 rounded-full p-0.5"
             onPress={toggleWishlist}>
             <Icon
               name={isInWishlist ? 'favorite' : 'favorite-border'}
               size={20}
-              color="#7c3aed"
+              color="#f00"
             />
           </TouchableOpacity>
           {/* Top Right Vehicle Details */}
           {item.vehicleDetails && (
-            <View className="absolute top-2 right-2 z-10 bg-violet-600 px-2 py-1 rounded-full">
+            <View
+              className={`absolute top-2 right-2 z-10  px-1 py-0.5 rounded-full ${
+                item.vehicleDetails === 'New' ? 'bg-green-600' : 'bg-gray-400'
+              }`}>
               <Text className="text-xs text-white font-semibold capitalize">
                 {item.vehicleDetails}
               </Text>
@@ -357,7 +360,10 @@ export const BrowseCars = () => {
   };
 
   // Calculate paginated data
-  const paginatedCars = filteredCars.slice((currentPage - 1) * perPage, currentPage * perPage);
+  const paginatedCars = filteredCars.slice(
+    (currentPage - 1) * perPage,
+    currentPage * perPage,
+  );
   const totalPages = Math.ceil(filteredCars.length / perPage);
 
   if (isLoading) {
@@ -841,26 +847,38 @@ export const BrowseCars = () => {
       {totalPages > 1 && (
         <View className="flex-row justify-center items-center mt-2 mb-4 space-x-2">
           <TouchableOpacity
-            className={`px-3 py-1 rounded-full border border-gray-300 bg-white ${currentPage === 1 ? 'opacity-50' : 'active:bg-violet-100'}`}
+            className={`px-3 py-1 rounded-full border border-gray-300 bg-white ${
+              currentPage === 1 ? 'opacity-50' : 'active:bg-violet-100'
+            }`}
             disabled={currentPage === 1}
-            onPress={() => setCurrentPage(p => Math.max(1, p - 1))}
-          >
+            onPress={() => setCurrentPage(p => Math.max(1, p - 1))}>
             <Icon name="chevron-left" size={20} color="#7c3aed" />
           </TouchableOpacity>
           {[...Array(totalPages)].map((_, idx) => (
             <TouchableOpacity
               key={idx}
-              className={`mx-1 px-3 py-1 rounded-full border ${currentPage === idx + 1 ? 'bg-violet-600 border-violet-600' : 'bg-white border-gray-300'}`}
-              onPress={() => setCurrentPage(idx + 1)}
-            >
-              <Text className={`${currentPage === idx + 1 ? 'text-white font-bold' : 'text-gray-700'}`}>{idx + 1}</Text>
+              className={`mx-1 px-3 py-1 rounded-full border ${
+                currentPage === idx + 1
+                  ? 'bg-violet-600 border-violet-600'
+                  : 'bg-white border-gray-300'
+              }`}
+              onPress={() => setCurrentPage(idx + 1)}>
+              <Text
+                className={`${
+                  currentPage === idx + 1
+                    ? 'text-white font-bold'
+                    : 'text-gray-700'
+                }`}>
+                {idx + 1}
+              </Text>
             </TouchableOpacity>
           ))}
           <TouchableOpacity
-            className={`px-3 py-1 rounded-full border border-gray-300 bg-white ${currentPage === totalPages ? 'opacity-50' : 'active:bg-violet-100'}`}
+            className={`px-3 py-1 rounded-full border border-gray-300 bg-white ${
+              currentPage === totalPages ? 'opacity-50' : 'active:bg-violet-100'
+            }`}
             disabled={currentPage === totalPages}
-            onPress={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-          >
+            onPress={() => setCurrentPage(p => Math.min(totalPages, p + 1))}>
             <Icon name="chevron-right" size={20} color="#7c3aed" />
           </TouchableOpacity>
         </View>

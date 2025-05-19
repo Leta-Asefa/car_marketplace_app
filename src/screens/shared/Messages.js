@@ -52,46 +52,44 @@ export const Messages = () => {
   }, []);
 
   useEffect(() => {
-    console.log('navigated to messages sender');
     const handleConversation = async () => {
-      if (sellerId && conversations.length > 0) {
-        const conversation = conversations.find(conv =>
-          conv.participants.some(participant => participant._id === sellerId),
-        );
-        if (conversation) {
-          setSelected(conversation);
+      if (!sellerId || conversations.length === 0) return;
+  
+      const existingConversation = conversations.find(conv =>
+        conv.participants.some(participant => participant._id === sellerId),
+      );
+  
+      // If the selected conversation is not the one with sellerId, update it
+      if (
+        !selected ||
+        !selected.participants.some(p => p._id === sellerId)
+      ) {
+        if (existingConversation) {
+          setSelected(existingConversation);
         } else {
           try {
-            // Create a new conversation if none exists
             await axios.get(
               `http://localhost:4000/api/chat/create_conversations/${user._id}/${sellerId}`,
             );
-
-            // Fetch updated conversations
             const res = await axios.get(
               `http://localhost:4000/api/chat/get_conversations/${user._id}`,
             );
             setConversations(res.data);
-
-            // Open the newly created conversation
-            const newConversation = res.data.find(conv =>
-              conv.participants.some(
-                participant => participant._id === sellerId,
-              ),
+  
+            const newConv = res.data.find(conv =>
+              conv.participants.some(p => p._id === sellerId),
             );
-            if (newConversation) {
-              setSelected(newConversation);
-            }
+            if (newConv) setSelected(newConv);
           } catch (err) {
             console.error('Error creating or fetching conversation', err);
           }
         }
       }
     };
-
+  
     handleConversation();
-  }, [sellerId]);
-
+  }, [sellerId, conversations, selected]);
+  
   useEffect(() => {
     if (socket) {
       socket.on('newMessage', (newMessage) => {
