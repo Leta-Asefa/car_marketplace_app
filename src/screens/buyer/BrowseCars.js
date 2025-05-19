@@ -17,9 +17,94 @@ import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import axios from 'axios';
 import {useNavigation} from '@react-navigation/native';
 import {CarDetailsModal} from '../../components/CarDetailsModal';
-import { useAuthUserContext } from '../../contexts/AuthUserContext';
+import {useAuthUserContext} from '../../contexts/AuthUserContext';
 
 const {height} = Dimensions.get('window');
+
+const dropdownData = {
+  brand: [
+    'Audi',
+    'BMW',
+    'Chevrolet',
+    'Ford',
+    'Honda',
+    'Hyundai',
+    'Jaguar',
+    'Jeep',
+    'Kia',
+    'Land Rover',
+    'Lexus',
+    'Mazda',
+    'Mercedes',
+    'Nissan',
+    'Porsche',
+    'Subaru',
+    'Tesla',
+    'Toyota',
+    'Volkswagen',
+    'Volvo',
+  ],
+  model: [
+    'A4',
+    'A6',
+    'Accord',
+    'Altima',
+    'Camry',
+    'C-Class',
+    'Civic',
+    'Corolla',
+    'Cruze',
+    'CX-5',
+    'E-Class',
+    'Elantra',
+    'F-150',
+    'Golf',
+    'Malibu',
+    'Mustang',
+    'Passat',
+    'Sentra',
+    'Sportage',
+    'Tucson',
+    'X3',
+    'X5',
+  ],
+  year: Array.from({length: 30}, (_, i) => `${2025 - i}`),
+  bodyType: [
+    'Convertible',
+    'Coupe',
+    'Crossover',
+    'Hatchback',
+    'Pickup',
+    'Sedan',
+    'SUV',
+    'Truck',
+    'Van',
+    'Wagon',
+  ],
+  fuel: ['CNG', 'Diesel', 'Electric', 'Hybrid', 'LPG', 'Petrol'],
+  transmission: ['Automatic', 'CVT', 'Dual-Clutch', 'Manual', 'Semi-Automatic'],
+  vehicleDetails: ['New', 'Used', 'Certified Pre-Owned'],
+  features: [
+    'Air Conditioning',
+    'Bluetooth',
+    'Navigation',
+    'Leather Seats',
+    'Sunroof',
+    'Backup Camera',
+    'Heated Seats',
+    'Apple CarPlay',
+    'Android Auto',
+    'Lane Departure Warning',
+  ],
+  safety: [
+    'ABS',
+    'Airbags',
+    'Stability Control',
+    'Blind Spot Monitor',
+    'Forward Collision Warning',
+    'Parking Sensors',
+  ],
+};
 
 export const BrowseCars = () => {
   const navigation = useNavigation();
@@ -35,7 +120,20 @@ export const BrowseCars = () => {
   const [showPriceFilters, setShowPriceFilters] = useState(false);
   const [sortBy, setSortBy] = useState(null); // 'price-asc', 'price-desc', 'year-asc', 'year-desc'
   const [showSortOptions, setShowSortOptions] = useState(false);
-  const {authUser,setAuthUser}=useAuthUserContext()
+  const {authUser, setAuthUser} = useAuthUserContext();
+
+  const [filters, setFilters] = useState({
+    bodyType: '',
+    brand: '',
+    model: '',
+    priceRange: null,
+    vehicleDetails: '',
+    transmission: '',
+    fuelType: '',
+    features: [],
+    safety: [],
+  });
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
 
   const carTypes = ['SUV', 'Sedan', 'Electric', 'Hatchback', 'Truck'];
   const priceRanges = [
@@ -46,22 +144,22 @@ export const BrowseCars = () => {
     {label: 'Over $40K', value: '40000-1000000000'},
   ];
 
-  // Fetch initial cars on first render
-  useEffect(() => {
-    const fetchInitialCars = async () => {
-      try {
-        const response = await fetch(
-          'http://localhost:4000/api/car/latestcars',
-        );
-        const data = await response.json();
-        setFilteredCars(data);
-      } catch (error) {
-        console.error('Error fetching initial cars:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+  const [currentPage, setCurrentPage] = useState(1);
+  const perPage = 6;
 
+  // Fetch initial cars on first render
+  const fetchInitialCars = async () => {
+    try {
+      const response = await fetch('http://localhost:4000/api/car/latestcars');
+      const data = await response.json();
+      setFilteredCars(data);
+    } catch (error) {
+      console.error('Error fetching initial cars:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  useEffect(() => {
     fetchInitialCars();
   }, []);
 
@@ -84,6 +182,20 @@ export const BrowseCars = () => {
     }
   }, [query]);
 
+  // Reset page if filteredCars length is less than current page
+  useEffect(() => {
+    if ((currentPage - 1) * perPage >= filteredCars.length) {
+      setCurrentPage(1);
+    }
+  }, [filteredCars]);
+
+  // If search text is cleared, fetch initial cars
+  useEffect(() => {
+    if (query.length === 0) {
+      fetchInitialCars();
+    }
+  }, [query]);
+
   const renderCarItem = ({item}) => {
     const isInWishlist = authUser?.wishList?.includes(item._id);
 
@@ -91,17 +203,17 @@ export const BrowseCars = () => {
       try {
         await axios.post(
           `http://localhost:4000/api/auth/${authUser._id}/wishlist`,
-          { carId: item._id },
-          { withCredentials: true }
+          {carId: item._id},
+          {withCredentials: true},
         );
 
         // Update the authUser state
-        setAuthUser((prevAuthUser) => {
+        setAuthUser(prevAuthUser => {
           const updatedWishList = isInWishlist
-            ? prevAuthUser.wishList.filter((id) => id !== item._id)
+            ? prevAuthUser.wishList.filter(id => id !== item._id)
             : [...prevAuthUser.wishList, item._id];
 
-          return { ...prevAuthUser, wishList: updatedWishList };
+          return {...prevAuthUser, wishList: updatedWishList};
         });
       } catch (error) {
         console.error('Error toggling wishlist:', error);
@@ -128,7 +240,7 @@ export const BrowseCars = () => {
             className="absolute top-2 left-2 z-10 bg-white/80 rounded-full p-1"
             onPress={toggleWishlist}>
             <Icon
-              name={isInWishlist ? "favorite" : "favorite-border"}
+              name={isInWishlist ? 'favorite' : 'favorite-border'}
               size={20}
               color="#7c3aed"
             />
@@ -142,12 +254,17 @@ export const BrowseCars = () => {
             </View>
           )}
         </View>
-        <View className="flex-row justify-between items-center mb-1">
-          <Text className="font-bold text-sm text-gray-800" numberOfLines={1}>
+        <View className=" mb-1">
+          <Text
+            className="font-bold w-full text-xs text-gray-800"
+            numberOfLines={1}>
+            {item.title}
+          </Text>
+          <Text className="font-bold text-xs text-gray-800" numberOfLines={1}>
             {item.brand} {item.model}
           </Text>
         </View>
-        <Text className="text-green-600 font-semibold text-sm mb-1">
+        <Text className="text-green-600 font-semibold text-xs mb-1">
           ${item.price}
         </Text>
         <View className="flex-row items-center">
@@ -239,6 +356,10 @@ export const BrowseCars = () => {
     setSortBy(type);
   };
 
+  // Calculate paginated data
+  const paginatedCars = filteredCars.slice((currentPage - 1) * perPage, currentPage * perPage);
+  const totalPages = Math.ceil(filteredCars.length / perPage);
+
   if (isLoading) {
     return (
       <View className="flex-1 justify-center items-center bg-gray-50">
@@ -263,7 +384,7 @@ export const BrowseCars = () => {
       {/* Search Bar */}
       <View className="relative mb-3">
         <TextInput
-          className="bg-white p-2 rounded-xl shadow-sm border border-gray-200 pl-12"
+          className="bg-white text-black p-2 rounded-xl shadow-sm border border-gray-200 pl-12"
           placeholder="Search by make, model, or feature..."
           placeholderTextColor="#9CA3AF"
           value={query}
@@ -275,119 +396,348 @@ export const BrowseCars = () => {
           color="#9CA3AF"
           style={{position: 'absolute', left: 12, top: 9}}
         />
-        <TouchableOpacity
-          className="absolute right-3 top-3"
-          onPress={() => setShowFilters(!showFilters)}>
-          <Icon
-            name={showFilters ? 'filter-list-off' : 'filter-list'}
-            size={20}
-            color="#7c3aed"
-          />
-        </TouchableOpacity>
       </View>
 
-      {/* Filter Section */}
-      {showFilters && (
-        <View className="mb-4 bg-white p-3 rounded-xl shadow-sm border border-gray-200">
-          <TouchableOpacity
-            className="flex-row justify-between items-center mb-2"
-            onPress={() => setShowTypeFilters(!showTypeFilters)}>
-            <Text className="text-sm font-medium text-gray-700">
-              Vehicle Type
-            </Text>
-            <Icon
-              name={
-                showTypeFilters ? 'keyboard-arrow-up' : 'keyboard-arrow-down'
-              }
-              size={20}
-              color="#6B7280"
-            />
-          </TouchableOpacity>
+      {/* Advanced Filters Button */}
+      <TouchableOpacity
+        className="flex-row items-center justify-center mb-4 bg-violet-600 py-2 rounded-xl"
+        onPress={() => setShowAdvancedFilters(true)}>
+        <Icon name="tune" size={20} color="white" />
+        <Text className="text-white font-semibold ml-2">Advanced Filters</Text>
+      </TouchableOpacity>
 
-          {showTypeFilters && (
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              className="mb-3">
-              {carTypes.map(type => (
-                <TouchableOpacity
-                  key={type}
-                  onPress={() =>
-                    setSelectedType(type === selectedType ? null : type)
-                  }
-                  className={`px-3 py-1.5 mr-2 rounded-full ${
-                    selectedType === type ? 'bg-violet-600' : 'bg-gray-100'
-                  }`}
-                  activeOpacity={0.7}>
-                  <Text
-                    className={`text-xs ${
-                      selectedType === type ? 'text-white' : 'text-gray-700'
-                    }`}>
-                    {type}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-          )}
-
-          <TouchableOpacity
-            className="flex-row justify-between items-center mb-2"
-            onPress={() => setShowPriceFilters(!showPriceFilters)}>
-            <Text className="text-sm font-medium text-gray-700">
-              Price Range
-            </Text>
-            <Icon
-              name={
-                showPriceFilters ? 'keyboard-arrow-up' : 'keyboard-arrow-down'
-              }
-              size={20}
-              color="#6B7280"
-            />
-          </TouchableOpacity>
-
-          {showPriceFilters && (
-            <View className="flex-row flex-wrap">
-              {priceRanges.map(range => (
-                <TouchableOpacity
-                  key={range.value}
-                  onPress={() =>
-                    setSelectedPrice(
-                      range.value === selectedPrice ? null : range.value,
-                    )
-                  }
-                  className={`px-3 py-1.5 mr-2 mb-2 rounded-lg ${
-                    selectedPrice === range.value
-                      ? 'bg-violet-600'
-                      : 'bg-gray-100'
-                  }`}
-                  activeOpacity={0.7}>
-                  <Text
-                    className={`text-xs ${
-                      selectedPrice === range.value
-                        ? 'text-white'
-                        : 'text-gray-700'
-                    }`}>
-                    {range.label}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          )}
-
-          {(showPriceFilters || showTypeFilters) && (
-            <TouchableOpacity
-              className="bg-violet-600 py-2 px-4 rounded-lg items-center mt-2"
-              onPress={applyFilters}
-              disabled={isLoading}>
-              <Text className="text-white font-medium">
-                {isLoading ? 'Applying...' : 'Apply Filters'}
+      {/* Advanced Filters Modal */}
+      <Modal
+        visible={showAdvancedFilters}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setShowAdvancedFilters(false)}>
+        <View className="flex-1 justify-center items-center bg-black bg-opacity-40">
+          <View className="bg-white rounded-2xl p-6 w-11/12 max-w-2xl">
+            <View className="flex-row justify-between items-center mb-4">
+              <Text className="text-xl font-bold text-violet-700">
+                Advanced Filters
               </Text>
-            </TouchableOpacity>
-          )}
+              <TouchableOpacity onPress={() => setShowAdvancedFilters(false)}>
+                <Icon name="close" size={24} color="#7c3aed" />
+              </TouchableOpacity>
+            </View>
+            <ScrollView
+              style={{maxHeight: height * 0.6}}
+              showsVerticalScrollIndicator={false}>
+              {/* Brand */}
+              <Text className="mb-1 text-gray-700">Brand</Text>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                className="mb-3 flex-row">
+                {dropdownData.brand.map(b => (
+                  <TouchableOpacity
+                    key={b}
+                    className={`px-3 py-1.5 mr-2 rounded-full ${
+                      filters.brand === b ? 'bg-violet-600' : 'bg-gray-100'
+                    }`}
+                    onPress={() =>
+                      setFilters(f => ({...f, brand: f.brand === b ? '' : b}))
+                    }>
+                    <Text
+                      className={`${
+                        filters.brand === b ? 'text-white' : 'text-gray-700'
+                      }`}>
+                      {b}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+              {/* Model */}
+              <Text className="mb-1 text-gray-700">Model</Text>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                className="mb-3 flex-row">
+                {dropdownData.model.map(m => (
+                  <TouchableOpacity
+                    key={m}
+                    className={`px-3 py-1.5 mr-2 rounded-full ${
+                      filters.model === m ? 'bg-violet-600' : 'bg-gray-100'
+                    }`}
+                    onPress={() =>
+                      setFilters(f => ({...f, model: f.model === m ? '' : m}))
+                    }>
+                    <Text
+                      className={`${
+                        filters.model === m ? 'text-white' : 'text-gray-700'
+                      }`}>
+                      {m}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+              {/* Body Type */}
+              <Text className="mb-1 text-gray-700">Body Type</Text>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                className="mb-3 flex-row">
+                {dropdownData.bodyType.map(bt => (
+                  <TouchableOpacity
+                    key={bt}
+                    className={`px-3 py-1.5 mr-2 rounded-full ${
+                      filters.bodyType === bt ? 'bg-violet-600' : 'bg-gray-100'
+                    }`}
+                    onPress={() =>
+                      setFilters(f => ({
+                        ...f,
+                        bodyType: f.bodyType === bt ? '' : bt,
+                      }))
+                    }>
+                    <Text
+                      className={`${
+                        filters.bodyType === bt ? 'text-white' : 'text-gray-700'
+                      }`}>
+                      {bt}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+              {/* Price Range */}
+              <Text className="mb-1 text-gray-700">Price Range</Text>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                className="mb-3 flex-row">
+                {[
+                  {label: 'Under $10K', value: {min: 0, max: 10000}},
+                  {label: '$10K-$20K', value: {min: 10000, max: 20000}},
+                  {label: '$20K-$30K', value: {min: 20000, max: 30000}},
+                  {label: '$30K-$40K', value: {min: 30000, max: 40000}},
+                  {label: 'Over $40K', value: {min: 40000, max: 100000000}},
+                ].map(range => (
+                  <TouchableOpacity
+                    key={range.label}
+                    className={`px-3 py-1.5 mr-2 rounded-full ${
+                      JSON.stringify(filters.priceRange) ===
+                      JSON.stringify(range.value)
+                        ? 'bg-violet-600'
+                        : 'bg-gray-100'
+                    }`}
+                    onPress={() =>
+                      setFilters(f => ({
+                        ...f,
+                        priceRange:
+                          JSON.stringify(f.priceRange) ===
+                          JSON.stringify(range.value)
+                            ? null
+                            : range.value,
+                      }))
+                    }>
+                    <Text
+                      className={`${
+                        JSON.stringify(filters.priceRange) ===
+                        JSON.stringify(range.value)
+                          ? 'text-white'
+                          : 'text-gray-700'
+                      }`}>
+                      {range.label}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+              {/* Transmission */}
+              <Text className="mb-1 text-gray-700">Transmission</Text>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                className="mb-3 flex-row">
+                {dropdownData.transmission.map(t => (
+                  <TouchableOpacity
+                    key={t}
+                    className={`px-3 py-1.5 mr-2 rounded-full ${
+                      filters.transmission === t
+                        ? 'bg-violet-600'
+                        : 'bg-gray-100'
+                    }`}
+                    onPress={() =>
+                      setFilters(f => ({
+                        ...f,
+                        transmission: f.transmission === t ? '' : t,
+                      }))
+                    }>
+                    <Text
+                      className={`${
+                        filters.transmission === t
+                          ? 'text-white'
+                          : 'text-gray-700'
+                      }`}>
+                      {t}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+              {/* Fuel Type */}
+              <Text className="mb-1 text-gray-700">Fuel Type</Text>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                className="mb-3 flex-row">
+                {dropdownData.fuel.map(fuel => (
+                  <TouchableOpacity
+                    key={fuel}
+                    className={`px-3 py-1.5 mr-2 rounded-full ${
+                      filters.fuelType === fuel
+                        ? 'bg-violet-600'
+                        : 'bg-gray-100'
+                    }`}
+                    onPress={() =>
+                      setFilters(f => ({
+                        ...f,
+                        fuelType: f.fuelType === fuel ? '' : fuel,
+                      }))
+                    }>
+                    <Text
+                      className={`${
+                        filters.fuelType === fuel
+                          ? 'text-white'
+                          : 'text-gray-700'
+                      }`}>
+                      {fuel}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+              {/* Vehicle Details (radio) */}
+              <Text className="mb-1 text-gray-700">Vehicle Details</Text>
+              <View className="flex-row mb-3">
+                {dropdownData.vehicleDetails.map(vd => (
+                  <TouchableOpacity
+                    key={vd}
+                    className={`px-3 py-1.5 mr-2 rounded-full border ${
+                      filters.vehicleDetails === vd
+                        ? 'bg-violet-600 border-violet-600'
+                        : 'bg-gray-100 border-gray-200'
+                    }`}
+                    onPress={() =>
+                      setFilters(f => ({
+                        ...f,
+                        vehicleDetails: f.vehicleDetails === vd ? '' : vd,
+                      }))
+                    }>
+                    <Text
+                      className={`${
+                        filters.vehicleDetails === vd
+                          ? 'text-white'
+                          : 'text-gray-700'
+                      }`}>
+                      {vd}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+              {/* Features (multi-select) */}
+              <Text className="mb-1 text-gray-700">Features</Text>
+              <View className="flex-row flex-wrap mb-3">
+                {dropdownData.features.map(feature => (
+                  <TouchableOpacity
+                    key={feature}
+                    className={`px-3 py-1.5 mr-2 mb-2 rounded-full border ${
+                      filters.features.includes(feature)
+                        ? 'bg-violet-600 border-violet-600'
+                        : 'bg-gray-100 border-gray-200'
+                    }`}
+                    onPress={() =>
+                      setFilters(f => ({
+                        ...f,
+                        features: f.features.includes(feature)
+                          ? f.features.filter(x => x !== feature)
+                          : [...f.features, feature],
+                      }))
+                    }>
+                    <Text
+                      className={`${
+                        filters.features.includes(feature)
+                          ? 'text-white'
+                          : 'text-gray-700'
+                      }`}>
+                      {feature}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+              {/* Safety (multi-select) */}
+              <Text className="mb-1 text-gray-700">Safety</Text>
+              <View className="flex-row flex-wrap mb-3">
+                {dropdownData.safety.map(safety => (
+                  <TouchableOpacity
+                    key={safety}
+                    className={`px-3 py-1.5 mr-2 mb-2 rounded-full border ${
+                      filters.safety.includes(safety)
+                        ? 'bg-violet-600 border-violet-600'
+                        : 'bg-gray-100 border-gray-200'
+                    }`}
+                    onPress={() =>
+                      setFilters(f => ({
+                        ...f,
+                        safety: f.safety.includes(safety)
+                          ? f.safety.filter(x => x !== safety)
+                          : [...f.safety, safety],
+                      }))
+                    }>
+                    <Text
+                      className={`${
+                        filters.safety.includes(safety)
+                          ? 'text-white'
+                          : 'text-gray-700'
+                      }`}>
+                      {safety}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </ScrollView>
+            {/* Buttons */}
+            <View className="flex-row justify-between mt-4">
+              <TouchableOpacity
+                className="px-6 py-2 rounded-lg bg-gray-200"
+                onPress={() => {
+                  setFilters({
+                    bodyType: '',
+                    brand: '',
+                    model: '',
+                    priceRange: null,
+                    vehicleDetails: '',
+                    transmission: '',
+                    fuelType: '',
+                    features: [],
+                    safety: [],
+                  });
+                  setQuery('');
+                  fetchInitialCars();
+                }}>
+                <Text className="text-gray-700 font-semibold">
+                  Clear Filters
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                className="px-6 py-2 rounded-lg bg-violet-600"
+                onPress={async () => {
+                  setShowAdvancedFilters(false);
+                  setIsLoading(true);
+                  try {
+                    const response = await axios.post(
+                      'http://localhost:4000/api/car/filter',
+                      filters,
+                    );
+                    setFilteredCars(response.data);
+                  } catch {}
+                  setIsLoading(false);
+                }}>
+                <Text className="text-white font-semibold">Apply Filters</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
         </View>
-      )}
+      </Modal>
 
-      {/* Results Count */}
       {/* Results Count and Sort Dropdown */}
       <View className="flex-row justify-between items-center mb-2">
         <Text className="text-sm font-medium text-gray-700">
@@ -470,7 +820,7 @@ export const BrowseCars = () => {
 
       {/* Car List in 2-column grid */}
       <FlatList
-        data={filteredCars}
+        data={paginatedCars}
         renderItem={renderCarItem}
         keyExtractor={item => item._id}
         numColumns={2}
@@ -486,6 +836,35 @@ export const BrowseCars = () => {
           </View>
         }
       />
+
+      {/* Pagination Controls */}
+      {totalPages > 1 && (
+        <View className="flex-row justify-center items-center mt-2 mb-4 space-x-2">
+          <TouchableOpacity
+            className={`px-3 py-1 rounded-full border border-gray-300 bg-white ${currentPage === 1 ? 'opacity-50' : 'active:bg-violet-100'}`}
+            disabled={currentPage === 1}
+            onPress={() => setCurrentPage(p => Math.max(1, p - 1))}
+          >
+            <Icon name="chevron-left" size={20} color="#7c3aed" />
+          </TouchableOpacity>
+          {[...Array(totalPages)].map((_, idx) => (
+            <TouchableOpacity
+              key={idx}
+              className={`mx-1 px-3 py-1 rounded-full border ${currentPage === idx + 1 ? 'bg-violet-600 border-violet-600' : 'bg-white border-gray-300'}`}
+              onPress={() => setCurrentPage(idx + 1)}
+            >
+              <Text className={`${currentPage === idx + 1 ? 'text-white font-bold' : 'text-gray-700'}`}>{idx + 1}</Text>
+            </TouchableOpacity>
+          ))}
+          <TouchableOpacity
+            className={`px-3 py-1 rounded-full border border-gray-300 bg-white ${currentPage === totalPages ? 'opacity-50' : 'active:bg-violet-100'}`}
+            disabled={currentPage === totalPages}
+            onPress={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+          >
+            <Icon name="chevron-right" size={20} color="#7c3aed" />
+          </TouchableOpacity>
+        </View>
+      )}
 
       {/* Full-screen Car Detail Modal */}
       <CarDetailsModal
