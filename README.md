@@ -1,97 +1,67 @@
-This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
+# Car Marketplace App
 
-# Getting Started
 
-> **Note**: Make sure you have completed the [Set Up Your Environment](https://reactnative.dev/docs/set-up-your-environment) guide before proceeding.
+## Key Features
 
-## Step 1: Start Metro
+### 🚗 **For Sellers**
+- Post new car listings with 20+ photos
+- Manage active listings (edit/delete/mark as sold)
+- Built-in chat system with buyers
+- Add social media links to profile
+- View buyer inquiries and statistics
 
-First, you will need to run **Metro**, the JavaScript build tool for React Native.
+### 🛒 **For Buyers**
+- Advanced car browsing with 15+ filters
+- Save favorites to wishlist
+- Compare two cars side-by-side
+- View seller's other listings
+- Personalized recommendations
+- Search history tracking
 
-To start the Metro dev server, run the following command from the root of your React Native project:
+### 💬 **Communication Tools**
+- In-app messaging system
+- Contact via seller's social links
+- Notification center
+- Message history
 
-```sh
-# Using npm
-npm start
+## Screenshots
 
-# OR using Yarn
-yarn start
-```
+<div style="display: flex; flex-wrap: wrap; gap: 15px; justify-content: center; margin: 20px 0;">
 
-## Step 2: Build and run your app
+  <!-- Buyer Screens (Rows 1-4) -->
+  <img src="/src/assets/1.jpg" width="30%" alt="Home Screen" />
+  <img src="/src/assets/2.jpg" width="30%" alt="Car Listings" />
+  <img src="/src/assets/3.jpg" width="30%" alt="Car Details" />
+  
+  <img src="/src/assets/4.jpg" width="30%" alt="Comparison Tool" />
+  <img src="/src/assets/5.jpg" width="30%" alt="Wishlist" />
+  <img src="/src/assets/6.jpg" width="30%" alt="Search Filters" />
+  
+  <img src="/src/assets/7.jpg" width="30%" alt="Recommendations" />
+  <img src="/src/assets/8.jpg" width="30%" alt="Seller Profile" />
+  <img src="/src/assets/9.jpg" width="30%" alt="Search History" />
+  
+  <!-- Seller Screens (Rows 4-7) -->
+  <img src="/src/assets/10.jpg" width="30%" alt="Seller Dashboard" />
+  <img src="/src/assets/11.jpg" width="30%" alt="New Listing" />
+  <img src="/src/assets/12.jpg" width="30%" alt="Manage Listings" />
+  
+  <img src="/src/assets/13.jpg" width="30%" alt="Chat Inbox" />
+  <img src="/src/assets/14.jpg" width="30%" alt="Message Thread" />
+  <img src="/src/assets/15.jpg" width="30%" alt="Notifications" />
+  
+  <!-- Shared Screens (Rows 7-8) -->
+  <img src="/src/assets/16.jpg" width="30%" alt="User Profile" />
+  <img src="/src/assets/17.jpg" width="30%" alt="Settings" />
+  <img src="/src/assets/18.jpg" width="30%" alt="Social Links" />
+  
+  <!-- Additional Screens -->
+  <img src="/src/assets/19.jpg" width="30%" alt="Analytics" />
+  <img src="/src/assets/20.jpg" width="30%" alt="Payment Options" />
+  <img src="/src/assets/21.jpg" width="30%" alt="Help Center" />
+  
+  <!-- Last Image -->
+  <img src="/src/assets/22.jpg" width="30%" alt="App Settings" />
 
-With Metro running, open a new terminal window/pane from the root of your React Native project, and use one of the following commands to build and run your Android or iOS app:
+</div>
 
-### Android
-
-```sh
-# Using npm
-npm run android
-
-# OR using Yarn
-yarn android
-```
-
-### iOS
-
-For iOS, remember to install CocoaPods dependencies (this only needs to be run on first clone or after updating native deps).
-
-The first time you create a new project, run the Ruby bundler to install CocoaPods itself:
-
-```sh
-bundle install
-```
-
-Then, and every time you update your native dependencies, run:
-
-```sh
-bundle exec pod install
-```
-
-For more information, please visit [CocoaPods Getting Started guide](https://guides.cocoapods.org/using/getting-started.html).
-
-```sh
-# Using npm
-npm run ios
-
-# OR using Yarn
-yarn ios
-```
-
-If everything is set up correctly, you should see your new app running in the Android Emulator, iOS Simulator, or your connected device.
-
-This is one way to run your app — you can also build it directly from Android Studio or Xcode.
-
-## Step 3: Modify your app
-
-Now that you have successfully run the app, let's make changes!
-
-Open `App.tsx` in your text editor of choice and make some changes. When you save, your app will automatically update and reflect these changes — this is powered by [Fast Refresh](https://reactnative.dev/docs/fast-refresh).
-
-When you want to forcefully reload, for example to reset the state of your app, you can perform a full reload:
-
-- **Android**: Press the <kbd>R</kbd> key twice or select **"Reload"** from the **Dev Menu**, accessed via <kbd>Ctrl</kbd> + <kbd>M</kbd> (Windows/Linux) or <kbd>Cmd ⌘</kbd> + <kbd>M</kbd> (macOS).
-- **iOS**: Press <kbd>R</kbd> in iOS Simulator.
-
-## Congratulations! :tada:
-
-You've successfully run and modified your React Native App. :partying_face:
-
-### Now what?
-
-- If you want to add this new React Native code to an existing application, check out the [Integration guide](https://reactnative.dev/docs/integration-with-existing-apps).
-- If you're curious to learn more about React Native, check out the [docs](https://reactnative.dev/docs/getting-started).
-
-# Troubleshooting
-
-If you're having issues getting the above steps to work, see the [Troubleshooting](https://reactnative.dev/docs/troubleshooting) page.
-
-# Learn More
-
-To learn more about React Native, take a look at the following resources:
-
-- [React Native Website](https://reactnative.dev) - learn more about React Native.
-- [Getting Started](https://reactnative.dev/docs/environment-setup) - an **overview** of React Native and how setup your environment.
-- [Learn the Basics](https://reactnative.dev/docs/getting-started) - a **guided tour** of the React Native **basics**.
-- [Blog](https://reactnative.dev/blog) - read the latest official React Native **Blog** posts.
-- [`@facebook/react-native`](https://github.com/facebook/react-native) - the Open Source; GitHub **repository** for React Native.
